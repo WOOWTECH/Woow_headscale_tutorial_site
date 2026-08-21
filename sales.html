@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Headscale 自架 VPN 方案 · 銷售手冊 · WoowTech</title>
+<meta name="description" content="把全家裝置串成自己的私有網段：Headscale 自架 VPN 控制層方案，點對點加密、ACL 存取控制、跨裝置互連，控制層資料留在你家。" />
+<meta name="theme-color" content="#6183FC" />
+<link rel="canonical" href="https://headscale-guide.woowtech.io/sales.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Yellowtail&display=swap" />
+<style>
+:root{--blue:#6183FC;--blue7:#3F63E8;--blue5:#EEF2FF;--ink:#1B2033;--ink7:#3A4054;--ink5:#6B7186;--paper:#F7F8FC;--surface:#fff;--alt:#F1F3FA;--hair:#E2E5EF;--r:20px;--rs:12px;--pill:999px;--shadow:0 26px 60px -18px rgba(97,131,252,.28);}
+*{box-sizing:border-box}body{margin:0;font-family:Poppins,-apple-system,"Noto Sans TC",sans-serif;color:var(--ink);background:var(--paper);line-height:1.7}h1,h2,h3{font-family:Outfit,Poppins,"Noto Sans TC",sans-serif}a{color:var(--blue7);text-decoration:none}
+.layout{display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--hair);padding:28px 22px;position:sticky;top:0;height:100vh;overflow:auto}
+.sidebar .brand{display:block;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.sidebar .brand-sub{font-size:13px;color:var(--ink5);margin-bottom:6px}
+.sidebar .hub-link{display:inline-block;font-size:12.5px;color:var(--ink5);margin-bottom:22px}
+.sidebar h2{font-size:12px;color:var(--ink5);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin:0 0 12px}
+.sidebar a.toc{display:block;padding:7px 12px;border-radius:8px;color:var(--ink7);font-size:13.5px}.sidebar a.toc:hover{background:var(--alt)}
+.content{padding:56px 64px 96px;max-width:900px}
+.kicker-script{font-family:Yellowtail,cursive;font-size:30px;color:var(--blue);display:block;margin-bottom:10px}
+.kicker{color:var(--blue);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+h1{font-size:38px;font-weight:700;margin:0 0 14px;line-height:1.25}
+.lead{font-size:17px;color:var(--ink7);margin:0 0 30px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:30px;overflow:hidden}
+.kpi{padding:22px;text-align:center}.kpi+.kpi{border-left:1px solid var(--hair)}.kpi b{display:block;font-size:26px;color:var(--blue)}.kpi span{font-size:13px;color:var(--ink5)}
+section{margin-bottom:44px}section h2{font-size:22px;margin:0 0 16px;padding-left:14px;border-left:4px solid var(--blue)}
+.callout{padding:14px 18px;border-radius:var(--rs);background:var(--alt);border:1px solid var(--hair);margin:16px 0;font-size:14.5px}.callout.tip{background:#F0FAEE}.callout.warn{background:#FEF3EE;border-color:rgba(230,109,62,.35)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--rs);overflow:hidden}th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--hair)}th{background:var(--blue5);font-weight:600}tr:last-child td{border-bottom:0}
+.steps{list-style:none;counter-reset:s;margin:16px 0;padding:0}.steps li{counter-increment:s;position:relative;padding:0 0 14px 50px}.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}.steps h3{margin:0 0 4px;font-size:16px}.steps p{margin:0;color:var(--ink7);font-size:14.5px}
+.cta{background:linear-gradient(135deg,#6183FC,#4A6DE8);color:#fff;border-radius:var(--r);padding:36px;box-shadow:var(--shadow)}.cta h2{color:#fff;border:0;padding:0}.cta a.btn{display:inline-block;background:#fff;color:var(--blue7);font-weight:700;padding:12px 26px;border-radius:var(--pill);margin-top:10px}
+footer{margin-top:40px;padding-top:24px;border-top:1px solid var(--hair);font-size:13px;color:var(--ink5)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.content{padding:32px 20px 64px}.kpis{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<a class="brand" href="tutorial.html">Headscale 指南</a>
+<div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+<a class="hub-link" href="index.html">◂ 資源總覽</a>
+<h2>本頁</h2>
+<a class="toc" href="#why">為什麼需要它</a>
+<a class="toc" href="#what">它是什麼</a>
+<a class="toc" href="#abilities">四大核心能力</a>
+<a class="toc" href="#privacy">控制層在你家</a>
+<a class="toc" href="#day">一天的使用</a>
+<a class="toc" href="#compare">兩種方案比一比</a>
+<a class="toc" href="#faq">常見問題</a>
+<a class="toc" href="#cta">下一步</a>
+</aside>
+<main class="content">
+<div class="chapter-header">
+<span class="kicker-script">your network, your home</span>
+<div class="kicker">WoowTech 渥屋科技 · 銷售手冊</div>
+<h1>把全家裝置，串成自己的私有網段</h1>
+<p class="lead">Headscale 自架 VPN 控制層方案：點對點加密連線、ACL 存取控制、跨裝置互連，兩種部署方式任你選，而你的網路控制權，永遠在自己手上。</p>
+</div>
+<div class="kpis">
+<div class="kpi"><b>100%</b><span>控制層在自己家</span></div>
+<div class="kpi"><b>點對點</b><span>裝置間加密直連</span></div>
+<div class="kpi"><b>ACL</b><span>誰能連誰，你說了算</span></div>
+</div>
+
+<section id="why" data-nav="why"><h2>為什麼你家需要自己的 VPN 網段</h2>
+<p>家裡的裝置越買越多：NAS、監視器、印表機、Home Assistant、手機、筆電。想在外網安全存取它們，傳統做法要開一堆 port、記一堆 IP，風險又高。</p>
+<p>Tailscale/Headscale 用「點對點加密網段」解決：裝置直接互連，不用開對外 port、不用記 IP。差別在於，Headscale 把「誰能連誰」這個控制權，也交回你手上。</p>
+<div class="callout tip"><strong>一句話講給客戶聽：</strong>「一般 VPN 是租別人的閘道；Headscale 是蓋自己的閘道。連線一樣順，差在鑰匙在誰手上。」</div>
+</section>
+
+<section id="what" data-nav="what"><h2>Headscale 是什麼</h2>
+<p>Headscale 是 Tailscale 協調伺服器的開源自架版。它管理整張網的「大腦」（誰在網上、誰能連誰、金鑰與 DNS），但實際流量仍走裝置之間的點對點加密通道（WireGuard）。</p>
+<table>
+<tr><th>需求</th><th>Headscale 對應能力</th></tr>
+<tr><td>跨裝置私有網段</td><td>各裝置 tailscale client 直連，不需開對外 port</td></tr>
+<tr><td>誰能連誰</td><td>ACL 存取控制，最小暴露</td></tr>
+<tr><td>把整段內網帶回家</td><td>subnet router、exit node（路由）</td></tr>
+<tr><td>好記的名稱互連</td><td>MagicDNS 用裝置名稱解析</td></tr>
+<tr><td>自架掌控</td><td>控制層、節點、policy 全在你手上</td></tr>
+</table>
+<p>WoowTech 把它架在 Home Assistant add-on 裡，與你的智慧家庭整合，成為家中數位基礎設施的一環。</p>
+</section>
+<section id="abilities" data-nav="abilities"><h2>四大核心能力</h2>
+<table>
+<tr><th>能力</th><th>客戶看到的價值</th></tr>
+<tr><td><strong>點對點加密</strong></td><td>裝置直接互連，流量不經第三方，也不用開對外 port</td></tr>
+<tr><td><strong>ACL 存取控制</strong></td><td>精準控制誰能連誰，最小暴露，不怕誤開</td></tr>
+<tr><td><strong>跨裝置互連</strong></td><td>手機、筆電、NAS、HA 通通進同一個私有網段</td></tr>
+<tr><td><strong>自架掌控</strong></td><td>控制層、節點清單、policy 全在自己家，不交第三方</td></tr>
+</table>
+</section>
+
+<section id="privacy" data-nav="privacy"><h2>控制層在你家，網路你說了算</h2>
+<ul>
+<li>節點清單、ACL、金鑰都存在你自己的伺服器，不經官方協調伺服器。</li>
+<li>preauth key 由你簽發、隨時撤銷，誰能加入網段你全控。</li>
+<li>不必為了多裝置付月費，容量看你的硬體與需求。</li>
+</ul>
+<div class="callout warn"><strong>誠實提醒：</strong>自架的好處是掌控，代價是維護。WoowTech 幫你顧好部署、更新、備份與安全，讓你只享受掌控感，不揹維護壓力。</div>
+</section>
+
+<section id="day" data-nav="day"><h2>有了它的一天</h2>
+<div class="steps">
+<div><h3>人在外面</h3><p>手機連回家裡的 Home Assistant、NAS，像在內網一樣順，不用開一堆 port。</p></div>
+<div><h3>家人共享</h3><p>家人裝置各自加入網段，ACL 只放行該互連的，各自安全。</p></div>
+<div><h3>把內網帶回家</h3><p>出差時透過 exit node 用家裡的 IP，或經 subnet router 存取整段內網。</p></div>
+</div>
+</section>
+<section id="compare" data-nav="compare"><h2>兩種部署方案</h2>
+<table>
+<tr><th></th><th>HAOS 內建 + 代設定</th><th>雲端 PaaS 租用</th></tr>
+<tr><td><strong>適合</strong></td><td>已有 Home Assistant 主機的家庭</td><td>不想維護硬體、要外網隨時可用</td></tr>
+<tr><td><strong>硬體</strong></td><td>用你現有的 HA 主機</td><td>WoowTech 雲端主機</td></tr>
+<tr><td><strong>設定</strong></td><td>WoowTech 代設定（控制層、ACL、備份）</td><td>WoowTech 代管</td></tr>
+<tr><td><strong>維護</strong></td><td>自己顧硬體，WoowTech 協助</td><td>WoowTech 全權代管</td></tr>
+</table>
+<div class="callout"><strong>費用：</strong>建置費一次 ＋ 依方案不同（節點數或月租），詳洽經銷商。</div>
+</section>
+
+<section id="faq" data-nav="faq"><h2>常見問題</h2>
+<div class="callout"><strong>連線會被第三方看到嗎？</strong><br>不會。控制層在你家，資料流量走裝置間點對點加密；連不通時才走 DERP 中繼。</div>
+<div class="callout"><strong>跟一般 VPN 比差在哪？</strong><br>一般 VPN 多是集中式閘道；Headscale 是網狀點對點，裝置直接互連，更適合多裝置私有網段。</div>
+<div class="callout"><strong>需要會架伺服器嗎？</strong><br>不用。使用端只要裝 tailscale client、會用 App；部署與維護由 WoowTech 負責。</div>
+<div class="callout"><strong>安全嗎？</strong><br>點對點加密 + ACL 最小暴露 + 自架掌控。守住 preauth key 與 ACL，安全性由你主導。</div>
+<div class="callout"><strong>裝置數量有限制嗎？</strong><br>看你方案。自架看硬體，可依需求擴充。</div>
+</section>
+
+<section id="cta" data-nav="cta"><div class="cta"><h2>下一步</h2>
+<p>想親眼看看自架 VPN 控制層長什麼樣、評估你家適合哪種方案，歡迎聯絡 WoowTech 或您的經銷商，我們安排實機展示與方案建議。</p>
+<a class="btn" href="#">聯絡 WoowTech 或您的經銷商</a>
+</div></section>
+
+<footer>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> 製作，以 CC BY 4.0 授權釋出。Headscale 與 Tailscale 為其各自權利人的商標，本站與其無隸屬關係。</footer>
+</main>
+</div>
+</body>
+</html>
