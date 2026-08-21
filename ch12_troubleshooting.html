@@ -23,15 +23,16 @@
   <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Yellowtail&display=swap" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
 <div class="layout">
   <aside class="sidebar">
-    <a class="brand" href="index.html">Headscale 指南</a>
+    <a class="brand" href="tutorial.html">Headscale 指南</a>
     <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <a class="hub-link" href="index.html">◂ 資源總覽</a>
     <h2>章節</h2>
     <ol>
       <li class="part-label">基礎：認識與安裝</li>
@@ -59,6 +60,10 @@
       <a href="#update">更新與備份</a>
       <a href="#faq">FAQ</a>
       <a href="#sources">官方來源</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>附錄</h2>
+
     </div>
   </aside>
 
@@ -151,18 +156,18 @@
 
     <div class="pager">
       <a class="prev" href="ch11_security.html">
-        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="label">← 上一章</span>
         <span class="title">11 · 安全與最小暴露</span>
       </a>
-      <a class="next" href="index.html">
-        <span class="label">回目錄 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+      <a class="next" href="tutorial.html">
+        <span class="label">回目錄 →</span>
         <span class="title">全套完成！</span>
       </a>
     </div>
 
     <footer class="site-footer">
       <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
-      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+      <p class="footer-meta">截圖取自 Headscale 與 Tailscale 官方介面。Headscale 與 Tailscale 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
     </footer>
   </main>
 </div>

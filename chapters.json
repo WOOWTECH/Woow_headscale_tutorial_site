@@ -11,6 +11,11 @@
     "ogImage": "assets/screenshots/ch4/01_preauth_key.png",
     "license": {"name":"CC BY 4.0","url":"https://creativecommons.org/licenses/by/4.0/deed.zh-hant","holder":"woowtech"}
   },
+  "hub": {
+    "catalog": "tutorial.html",
+    "navLabel": "資源總覽",
+    "pages": ["sales.html", "prompts.html", "skills.html"]
+  },
   "chapters": [
     {"file":"ch1_intro.html","num":"01","navLabel":"開始前","title":"開始前","pagerTitle":"01 · 需求與安全邊界","card":"先確認 Headscale 是什麼、自架控制層的價值，以及與官方 Tailscale 的差別。","description":"Headscale 自架 VPN 控制層使用前規劃：自架價值、與官方 Tailscale 的差別、帳號與安全邊界。","part":"基礎：認識與安裝"},
     {"file":"ch2_install.html","num":"02","navLabel":"安裝","title":"安裝 Headscale","pagerTitle":"02 · 安裝 Headscale","card":"把 Headscale add-on 裝進 Home Assistant，認識安裝後的初始狀態。","description":"Home Assistant Headscale add-on 安裝教學：加入安裝、啟動與首次開啟準備。","part":"基礎：認識與安裝"},

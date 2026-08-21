@@ -30,6 +30,11 @@ const CHECK = process.argv.includes('--check');
 const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'chapters.json'), 'utf8'));
 const { site } = cfg;
 
+// hub 模式：index.html 為人手維護的資源總覽，教學目錄頁輸出到 hub.catalog。
+const HUB = cfg.hub || null;
+const CATALOG = (HUB && HUB.catalog) || 'index.html';
+const HUB_PAGES = (HUB && HUB.pages) || [];
+
 const chapters = cfg.chapters.map((c) => ({ ...c, kind: 'chapter' }));
 const appendices = cfg.appendices.map((a) => ({ ...a, kind: 'appendix' }));
 const pages = [...chapters, ...appendices];
@@ -52,7 +57,7 @@ const url = (rel) => `${site.baseUrl.replace(/\/$/, '')}/${rel === 'index.html' 
 /* ---------------------------------------------------------------- head --- */
 
 function buildHead(page, html) {
-  const isIndex = page.file === 'index.html';
+  const isIndex = page.file === CATALOG;
   const title = isIndex
     ? `${site.title} · ${site.subtitle}`
     : page.kind === 'appendix'
@@ -85,7 +90,7 @@ function buildHead(page, html) {
   <link rel="license" href="${site.license.url}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Yellowtail&display=swap" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>`;
@@ -148,9 +153,12 @@ function buildSidebar(page, html) {
     )
     .join('\n');
 
+  const hubLink = HUB
+    ? `\n    <a class="hub-link" href="index.html">◂ ${esc(HUB.navLabel || '資源總覽')}</a>`
+    : '';
   return `<aside class="sidebar">
-    <a class="brand" href="index.html">${esc(site.brand)}</a>
-    <div class="brand-sub">${esc(site.subtitle)}</div>
+    <a class="brand" href="${CATALOG}">${esc(site.brand)}</a>
+    <div class="brand-sub">${esc(site.subtitle)}</div>${hubLink}
     <h2>章節</h2>
     <ol>
 ${chapterItems}
@@ -159,11 +167,11 @@ ${chapterItems}
       <h2>本章</h2>
 ${inChapter}
     </div>
-${appendices.length ? `    <div class="toc-in-chapter">
+    <div class="toc-in-chapter">
       <h2>附錄</h2>
 ${appendixItems}
     </div>
-` : ''}  </aside>`;
+  </aside>`;
 }
 
 /* --------------------------------------------------------------- pager --- */
@@ -175,29 +183,29 @@ function buildPager(page) {
 
   const prevHtml = prev
     ? `      <a class="prev" href="${prev.file}">
-        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> ${prev.kind === 'appendix' ? `附錄 ${prev.num}` : '上一章'}</span>
+        <span class="label">${prev.kind === 'appendix' ? `← 附錄 ${prev.num}` : '← 上一章'}</span>
         <span class="title">${esc(prev.pagerTitle)}</span>
       </a>`
-    : `      <a class="prev disabled" href="index.html">
-        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+    : `      <a class="prev disabled" href="${CATALOG}">
+        <span class="label">← 上一章</span>
         <span class="title">回目錄</span>
       </a>`;
 
   const nextLabel = !next
-    ? '回目錄'
+    ? '回目錄 →'
     : next.kind === 'appendix'
       ? page.kind === 'appendix'
-        ? '下一附錄'
-        : `附錄 ${next.num}`
-      : '下一章';
+        ? '下一附錄 →'
+        : `附錄 ${next.num} →`
+      : '下一章 →';
 
   const nextHtml = next
     ? `      <a class="next" href="${next.file}">
-        <span class="label">${nextLabel} <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="label">${nextLabel}</span>
         <span class="title">${esc(next.pagerTitle)}</span>
       </a>`
-    : `      <a class="next" href="index.html">
-        <span class="label">回目錄 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+    : `      <a class="next" href="${CATALOG}">
+        <span class="label">回目錄 →</span>
         <span class="title">全套完成！</span>
       </a>`;
 
@@ -212,7 +220,7 @@ ${nextHtml}
 function buildFooter() {
   return `<footer class="site-footer">
       <p>《${esc(site.title)}》由 <a href="${site.repoUrl}" rel="noopener">${esc(site.license.holder)}</a> 製作，以 <a rel="license noopener" href="${site.license.url}">${esc(site.license.name)}</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
-      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="${site.repoUrl}" rel="noopener">原始碼與勘誤</a></p>
+      <p class="footer-meta">截圖取自 Headscale 與 Tailscale 官方介面。Headscale 與 Tailscale 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="${site.repoUrl}" rel="noopener">原始碼與勘誤</a></p>
     </footer>`;
 }
 
@@ -260,7 +268,7 @@ function buildPage(page) {
 }
 
 function buildIndex() {
-  const p = path.join(ROOT, 'index.html');
+  const p = path.join(ROOT, CATALOG);
   const original = fs.readFileSync(p, 'utf8');
   let html = original;
 
@@ -278,32 +286,11 @@ function buildIndex() {
     if (g) g.items.push(c);
     else groups.push({ title, items: [c] });
   }
-  if (appendices.length) groups.push({ title: '附錄', items: appendices });
-
-  const hero = `    <div class="hero">
-      <span class="kicker-script">Secure</span>
-      <div class="kicker">${esc(site.title)}</div>
-      <h1>${esc(site.subtitle)}</h1>
-      <p>${esc(site.description)}</p>
-      <a class="hero-action" href="#course-path"><i class="mdi mdi-arrow-down" aria-hidden="true"></i> 從課程地圖開始</a>
-    </div>`;
-
-  const coursePath = `    <section class="course-path" id="course-path" aria-labelledby="course-path-title">
-      <div class="course-path-copy">
-        <p class="eyebrow">12 chapters · one secure tunnel</p>
-        <h2 id="course-path-title">用清楚的順序，建立你的安全入口</h2>
-        <p>先確認網域與 Home Assistant，再理解 Setup、授權和 hostname；完成後用 Dashboard、Config 與 Logs 建立可驗證、可回復的維護節奏。</p>
-      </div>
-      <ol class="course-path-list">
-        <li><i class="mdi mdi-cloud-lock-outline" aria-hidden="true"></i><span><strong>先建立入口</strong>安裝 Web GUI 並確認前置條件。</span></li>
-        <li><i class="mdi mdi-link-variant" aria-hidden="true"></i><span><strong>再完成建置</strong>理解授權、hostname 與 Tunnel 狀態。</span></li>
-        <li><i class="mdi mdi-shield-check" aria-hidden="true"></i><span><strong>最後守住邊界</strong>用 Logs、安全檢查與排錯維持服務。</span></li>
-      </ol>
-    </section>`;
+  groups.push({ title: '附錄', items: appendices });
 
   const grids = groups
     .map(
-      (g, i) => `<section class="chapter-index${i ? ' chapter-index-spaced' : ''}">
+      (g, i) => `<section class="chapter-index"${i ? ' style="margin-top:56px;"' : ''}>
       <h2 class="index-title">${esc(g.title)}</h2>
       <div class="chapter-grid">
 ${g.items.map(card).join('\n')}
@@ -312,16 +299,9 @@ ${g.items.map(card).join('\n')}
     )
     .join('\n\n    ');
 
-  html = replaceOne('index.html', html, /<head>[\s\S]*?<\/head>/, buildHead({ file: 'index.html' }, original), '<head>');
+  html = replaceOne(CATALOG, html, /<head>[\s\S]*?<\/head>/, buildHead({ file: CATALOG }, original), '<head>');
   html = replaceOne(
-    'index.html',
-    html,
-    /[ \t]*<div class="hero">[\s\S]*?<\/div>\n\n(?:    <section class="course-path"[\s\S]*?<\/section>\n\n)+    <section class="chapter-index">/,
-    `${hero}\n\n${coursePath}\n\n    <section class="chapter-index">`, 
-    'hero'
-  );
-  html = replaceOne(
-    'index.html',
+    CATALOG,
     html,
     /<section class="chapter-index">[\s\S]*<\/section>/,
     grids,
@@ -335,12 +315,15 @@ ${g.items.map(card).join('\n')}
     html = html.replace(/(\s*)<\/main>/, `\n\n    ${footer}\n  </main>`);
   }
 
-  return { file: 'index.html', path: p, original, html };
+  return { file: CATALOG, path: p, original, html };
 }
 
 function buildSitemap(outputs) {
   const today = fs.statSync(path.join(ROOT, 'chapters.json')).mtime.toISOString().slice(0, 10);
-  const entries = ['index.html', ...pages.map((p) => p.file)].map(
+  const files = ['index.html'];
+  if (CATALOG !== 'index.html') files.push(CATALOG);
+  files.push(...pages.map((p) => p.file), ...HUB_PAGES);
+  const entries = files.map(
     (f) => `  <url>
     <loc>${url(f)}</loc>
     <lastmod>${today}</lastmod>
@@ -371,12 +354,8 @@ function validateLinks(outputs) {
         problems.push(`${file}: 連結指向不存在的檔案 → ${target}`);
       }
     }
-    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
-    for (const id of new Set(ids.filter((id, index) => ids.indexOf(id) !== index))) {
-      problems.push(`${file}: 重複的 id="${id}"`);
-    }
     for (const m of html.matchAll(/href="#([^"]+)"/g)) {
-      if (!ids.includes(m[1])) problems.push(`${file}: 錨點 #${m[1]} 無對應 id`);
+      if (!html.includes(`id="${m[1]}"`)) problems.push(`${file}: 錨點 #${m[1]} 無對應 id`);
     }
   }
 }

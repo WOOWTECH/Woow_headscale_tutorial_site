@@ -333,3 +333,7 @@ details.faq .body { padding: var(--space-5); color: var(--text-secondary); font-
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* hub 模式：側欄回資源總覽的連結（build_nav.js 產生） */
+.sidebar .hub-link { display: inline-block; font-size: 12.5px; color: var(--text-secondary); margin: -20px 0 24px; }
+.sidebar .hub-link:hover { color: var(--ww-blue-700); text-decoration: none; }
