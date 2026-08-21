@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 11 章 · 安全與最小暴露 · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale 安全檢查：入口、preauth key、ACL 與最小暴露。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch11_security.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 11 章 · 安全與最小暴露 · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale 安全檢查：入口、preauth key、ACL 與最小暴露。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch11_security.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 11 章 · 安全與最小暴露 · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale 安全檢查：入口、preauth key、ACL 與最小暴露。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html" class="active">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">三道防線</a>
+      <a href="#steps">檢查清單</a>
+      <a href="#preauth">金鑰管理</a>
+      <a href="#acl">ACL 最小化</a>
+      <a href="#nodes">節點盤點</a>
+      <a href="#troubleshoot">安全卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 11 章</div>
+      <h1>安全與最小暴露</h1>
+      <p class="lead">從控制層入口、preauth key、ACL 到節點盤點，做一次系統性的安全檢查。讀完這章，你會知道哪些習慣能守住私有網段，哪些「方便」其實是過度暴露，並學會把暴露範圍縮到最小。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">私有網段最怕鑰匙外流</h2>
+      <p>Headscale 的整張網，安全性繫於幾樣東西：控制層入口、preauth key、ACL 規則。任何一樣沒守住，你的「私有」網段就可能被外人溜進來。安全不是設定一次就好，而是幾個習慣長期守住。</p>
+      <div class="callout"><strong>本章任務：</strong>逐項檢查入口、金鑰、ACL 與節點，把不必要的暴露收起來。全程只做「收緊」，不刪資料。</div>
+    </section>
+
+    <section id="concept" data-nav="三道防線">
+      <h2 data-icon="concept">安全的三道防線</h2>
+      <table class="data-table">
+        <thead><tr><th>防線</th><th>守什麼</th><th>你的責任</th></tr></thead>
+        <tbody>
+          <tr><td>控制層入口</td><td>誰能接觸管理介面／API</td><td>不對外公開、只留管理員</td></tr>
+          <tr><td>preauth key</td><td>誰能把裝置加進網段</td><td>當最高機密、用完就撤銷</td></tr>
+          <tr><td>ACL（policy）</td><td>裝置之間誰能連誰</td><td>預設全拒、只放行必要互連</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>最小暴露原則：</strong>任何東西預設不開；要開，只開到「剛好夠用」，並保留撤銷的能力。</div>
+    </section>
+
+    <section id="steps" data-nav="檢查清單">
+      <h2 data-icon="steps">六步安全檢查清單</h2>
+      <ol class="steps">
+        <li><h3>檢查控制層不外露</h3><p>確認管理介面／API 只在內網或受控入口可達，沒有對整個網際網路開放。</p></li>
+        <li><h3>盤點 preauth key</h3><p>用 <code>headscale preauthkeys list</code> 看還有哪些未使用的金鑰，用不到的立刻撤銷。</p></li>
+        <li><h3>檢查 ACL 是否最小化</h3><p>用 <code>headscale policy get</code> 檢視規則，確認不是「全放行」，只留必要互連（第 7 章）。</p></li>
+        <li><h3>盤點節點</h3><p>用 <code>headscale nodes list</code> 看有哪些裝置，認不出來的節點先停用再查。</p></li>
+        <li><h3>檢查金鑰與帳號</h3><p>管理員帳號別到處給；API key（若有用）也要定期輪替。</p></li>
+        <li><h3>確認備份在跑</h3><p>config、policy、資料庫都有定期備份（第 10 章），並做過還原演練。</p></li>
+      </ol>
+      <div class="callout danger"><strong>遇到可疑節點：</strong>看到不認得的裝置或金鑰，先撤銷金鑰、停用節點，再追查來源，不要拖。</div>
+    </section>
+
+    <section id="preauth" data-nav="金鑰管理">
+      <h2 data-icon="security">preauth key 的管理</h2>
+      <p><strong>preauth key</strong> 是讓裝置加入網段的「預授權鑰匙」。拿到它的人，就能把裝置掛進你的網段。管理原則是：</p>
+      <ul>
+        <li><strong>一機一鑰、用完即撤</strong>：不要一把鑰匙反覆用，也不要共用。</li>
+        <li><strong>不要貼在公開處</strong>：金鑰別寫進群組聊天、別 commit 進 repo。</li>
+        <li><strong>定期盤點</strong>：撤銷所有「已經用過」或「已經不需要」的金鑰。</li>
+      </ul>
+      <div class="callout warn"><strong>金鑰外流的補救：</strong>立刻撤銷該金鑰，並盤點是否有不明節點因此加入，必要時收緊 ACL。</div>
+    </section>
+
+    <section id="acl" data-nav="ACL 最小化">
+      <h2 data-icon="compare">ACL 最小化</h2>
+      <p>ACL（policy）決定「誰能連誰、能連哪些 port」。最安全的心態是「預設全拒，白名單放行」：</p>
+      <table class="data-table">
+        <thead><tr><th>做法</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>預設全拒</td><td>沒有明寫放行的，一律不通</td></tr>
+          <tr><td>只放行必要互連</td><td>例如「手機能連家裡的 HA，其他都不行」</td></tr>
+          <tr><td>依使用者分區</td><td>家人裝置與工作裝置分開，互不越界</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>改了要驗證：</strong>ACL 改完，實際從裝置測一次「該通的通、不該通的不通」，不要只看設定以為對了。</div>
+    </section>
+
+    <section id="nodes" data-nav="節點盤點">
+      <h2 data-icon="persons">節點盤點</h2>
+      <p>定期列舉節點，就像盤點「誰在家裡網段上」。重點：</p>
+      <ul>
+        <li>每個節點都要認得出來（名字、裝置、用途）。</li>
+        <li>不認得的節點：先停用，再追查它是誰加的、用哪把鑰匙。</li>
+        <li>久未上線的裝置：確認是否還需要，不需要就移除。</li>
+      </ul>
+      <div class="callout warn"><strong>節點名字別洩露敏感資訊：</strong>命名用可辨識但不洩密的說法，別把完整人名、地址、序號放進節點名。</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="安全卡關">
+      <h2 data-icon="troubleshoot">安全相關卡關</h2>
+      <ol class="steps">
+        <li><h3>懷疑金鑰外流</h3><p>立刻撤銷該金鑰，盤點節點與近期加入記錄，必要時收緊 ACL 並通知使用者。</p></li>
+        <li><h3>發現不明節點</h3><p>停用節點、撤銷可疑金鑰，再查它是從哪加入的。</p></li>
+        <li><h3>ACL 放太寬想收緊</h3><p>先列出現有互連需求，逐條放行，其餘全拒；改完實際驗證。</p></li>
+        <li><h3>不確定某個東西該不該開</h3><p>預設「不開」。拿不準就先關，需要時再開。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">安全常見問題</h2>
+      <details class="faq"><summary>控制層被掃描到會怎樣？</summary><div class="body">管理介面／API 若對外暴露，攻擊者可能嘗試登入或列舉。這就是為什麼控制層要留在內網、不對外公開。</div></details>
+      <details class="faq"><summary>preauth key 可以重複使用嗎？</summary><div class="body">可以，但強烈不建議。一機一鑰、用完即撤最安全；共用一把會讓撤銷與追蹤變難。</div></details>
+      <details class="faq"><summary>ACL 全放行有什麼風險？</summary><div class="body">等於網上所有裝置都能互連所有 port。任何一個裝置被入侵，整張網都可能淪陷。務必最小化。</div></details>
+      <details class="faq"><summary>多久盤點一次比較好？</summary><div class="body">建議每月一次快速盤點（金鑰、節點、ACL）；有異常（不明節點、金鑰外流疑慮）時立刻檢查。</div></details>
+      <details class="faq"><summary>管理員帳號需要特別保護嗎？</summary><div class="body">要。管理員能改 policy、刪節點。用強密碼、別到處給，API key 定期輪替。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale 官網</a></td><td>安全相關設定與文件</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>preauth key、policy、issue 與最佳實踐</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/1018/acls" rel="noopener">Tailscale：ACLs</a></td><td>ACL 概念與最小化原則</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch10_admin.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">10 · 管理員設定</span>
+      </a>
+      <a class="next" href="ch12_troubleshooting.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">12 · 排錯與維護</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

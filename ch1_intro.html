@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 1 章 · 開始前 · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale 自架 VPN 控制層使用前規劃：自架價值、與官方 Tailscale 的差別、帳號與安全邊界。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch1_intro.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 1 章 · 開始前 · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale 自架 VPN 控制層使用前規劃：自架價值、與官方 Tailscale 的差別、帳號與安全邊界。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch1_intro.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 1 章 · 開始前 · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale 自架 VPN 控制層使用前規劃：自架價值、與官方 Tailscale 的差別、帳號與安全邊界。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html" class="active">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">Headscale 是什麼</a>
+      <a href="#compare">vs 官方</a>
+      <a href="#what">這套的樣貌</a>
+      <a href="#security">安全邊界</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 1 章</div>
+      <h1>開始前：把 VPN 控制層收在自己家</h1>
+      <p class="lead">先弄清楚 Headscale 是什麼、為什麼要自架 VPN 控制層，以及它和官方 Tailscale 的差別。讀完這章，你會知道這套 WoowTech Headscale 能為你做什麼，以及哪些安全界線不能跨。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">為什麼要自架控制層</h2>
+      <p>Tailscale 讓你把散在各處的裝置串成一個私有網路，不用開對外 port、不用記 IP。但它預設把「誰能連誰、有哪些節點」這些控制邏輯交給官方的協調伺服器（control plane）。</p>
+      <p><strong>Headscale</strong> 是「自架的 Tailscale 控制伺服器」：一樣的連線體驗，差在控制層跑在你自己家。節點清單、ACL、金鑰，全都你說了算，不經第三方。</p>
+      <div class="callout"><strong>本章目標：</strong>不是教你架伺服器，而是讓你在開始用之前，先看懂 Headscale 的定位、它與官方 Tailscale 的關係，以及安全邊界。真正動手從第 2 章安裝開始。</div>
+      <div class="callout warn"><strong>先講清楚：</strong>自架控制層的「安全」有一半是你自己負責。preauth key 亂丟、ACL 開太寬，都會讓你的私有網路形同虛設。</div>
+    </section>
+
+    <section id="concept" data-nav="Headscale 是什麼">
+      <h2 data-icon="concept">Headscale 是什麼</h2>
+      <p>Headscale 是 Tailscale 協調伺服器的開源自架實作。它管理整張網的「大腦」，但實際流量仍走裝置之間的點對點加密通道（WireGuard）。</p>
+      <table class="data-table">
+        <thead><tr><th>概念</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>控制層（control plane）</td><td>管理節點、ACL、金鑰、DNS 的伺服器</td></tr>
+          <tr><td>資料層（data plane）</td><td>裝置之間實際的加密連線（WireGuard）</td></tr>
+          <tr><td>tailscale client</td><td>裝在裝置上的用戶端，連到控制層（官方或 Headscale）</td></tr>
+          <tr><td>DERP</td><td>當點對點連不通時的中繼伺服器</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>一句話記住：</strong>Tailscale 的「協調伺服器」是官方管的；Headscale 就是這個協調伺服器的開源自架版，讓你自己管。</div>
+    </section>
+
+    <section id="compare" data-nav="vs 官方">
+      <h2 data-icon="compare">Headscale vs 官方 Tailscale</h2>
+      <table class="data-table">
+        <thead><tr><th></th><th>官方 Tailscale</th><th>Headscale（自架）</th></tr></thead>
+        <tbody>
+          <tr><td>控制層</td><td>官方伺服器</td><td>你自己架（WoowTech）</td></tr>
+          <tr><td>資料掌控</td><td>官方看得到節點與 policy</td><td>全在你手上</td></tr>
+          <tr><td>費用</td><td>免費額度＋付費方案</td><td>自架，看你的硬體</td></tr>
+          <tr><td>功能</td><td>完整、更新快</td><td>多數核心功能齊全，部分進階功能可能較慢跟上</td></tr>
+          <tr><td>維護</td><td>官方維護</td><td>你（或 WoowTech）維護</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><strong>誠實提醒：</strong>自架的好處是掌控，代價是維護。WoowTech 負責把部署、更新、安全顧好，你享受掌控感，不必揹維護壓力。</div>
+    </section>
+
+    <section id="what" data-nav="這套的樣貌">
+      <h2 data-icon="what">這套 WoowTech Headscale 長什麼樣子</h2>
+      <p>你現在要用的，是 WoowTech 架在 Home Assistant add-on 裡的 Headscale 實例。它和 Tailscale client 搭配，把家人各裝置串成自己的私有網段。</p>
+      <ul>
+        <li><strong>入口</strong>：控制層本身，管理節點與 policy（第 3 章）。</li>
+        <li><strong>管理方式</strong>：以 CLI 與 API 為主，部分環境有 Web UI（依部署而定）。</li>
+        <li><strong>加入裝置</strong>：裝置上的 tailscale client 指向這台 Headscale 即可加入（第 5 章）。</li>
+        <li><strong>對照</strong>：可參考姊妹站《Tailscale HA add-on 指南》了解 client 端操作。</li>
+      </ul>
+      <div class="callout"><strong>心智模型：</strong>Headscale 是「總部」，各裝置的 tailscale client 是「分店」，總部決定誰能連誰（ACL）、分店之間用加密通道直連。</div>
+    </section>
+
+    <section id="security" data-nav="安全邊界">
+      <h2 data-icon="security">使用前的安全邊界</h2>
+      <ul>
+        <li><strong>preauth key 就是鑰匙</strong>：誰拿到就能讓裝置加入你的網段，當作最高機密保管、用完就撤銷。</li>
+        <li><strong>ACL 最小化</strong>：預設全拒，只放行真正需要的互連。</li>
+        <li><strong>控制層不外露</strong>：管理介面只留給管理員，不對外公開。</li>
+        <li><strong>備份 policy 與金鑰</strong>：這些是重建網段的命脈，要納入備份。</li>
+      </ul>
+      <div class="callout danger"><strong>停止線：</strong>不要為了方便把 preauth key、管理介面或整份 ACL 公開。誰需要加入，就只發一把「一次性、可撤銷」的鑰匙。</div>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">開始前常見問題</h2>
+      <details class="faq"><summary>Headscale 和 Tailscale 是同一家嗎？</summary><div class="body">不是。Tailscale 是官方服務；Headscale 是第三方開源專案，自架實作 Tailscale 的協調伺服器。兩者相容，client 端都用 tailscale。</div></details>
+      <details class="faq"><summary>我需要會架伺服器嗎？</summary><div class="body">使用端不需要。部署與維護由 WoowTech 負責，這套教學教你怎麼「用」這個網段。</div></details>
+      <details class="faq"><summary>裝置之間還走官方伺服器嗎？</summary><div class="body">不走。控制層是你的 Headscale，資料流量走裝置間點對點加密；連不通時才走 DERP 中繼。</div></details>
+      <details class="faq"><summary>和一般 VPN 差在哪？</summary><div class="body">傳統 VPN 多是「集中式閘道」；Tailscale/Headscale 是「網狀點對點」，裝置直接互連，更適合多裝置私有網段。</div></details>
+      <details class="faq"><summary>資料會被 Headscale 伺服器看到嗎？</summary><div class="body">控制層看得到節點與 policy（誰在網上、誰能連誰），但實際檔案流量是裝置間加密直連，控制層不經手。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale 官網</a></td><td>產品定位與文件入口</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>版本、文件、issue 與社群</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale 知識庫</a></td><td>client 端操作與概念對照</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev disabled" href="index.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">回目錄</span>
+      </a>
+      <a class="next" href="ch2_install.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">02 · 安裝 Headscale</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

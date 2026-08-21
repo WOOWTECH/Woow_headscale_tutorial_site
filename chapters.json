@@ -1,0 +1,30 @@
+{
+  "_readme": "導覽、SEO、首頁與 sitemap 的單一來源；變更後執行 node scripts/build_nav.js。",
+  "site": {
+    "title": "Headscale 自架 VPN 控制層指南",
+    "brand": "Headscale 指南",
+    "subtitle": "自架的 Tailscale 控制伺服器",
+    "baseUrl": "https://headscale-guide.woowtech.io",
+    "repoUrl": "https://github.com/WOOWTECH/Woow_headscale_tutorial_site",
+    "locale": "zh_TW",
+    "description": "12 章繁體中文 Headscale 教學：從安裝、建立使用者與 preauth key、加入裝置，到節點管理、ACL、路由、DNS、管理員設定與安全排錯。",
+    "ogImage": "assets/screenshots/ch4/01_preauth_key.png",
+    "license": {"name":"CC BY 4.0","url":"https://creativecommons.org/licenses/by/4.0/deed.zh-hant","holder":"woowtech"}
+  },
+  "chapters": [
+    {"file":"ch1_intro.html","num":"01","navLabel":"開始前","title":"開始前","pagerTitle":"01 · 需求與安全邊界","card":"先確認 Headscale 是什麼、自架控制層的價值，以及與官方 Tailscale 的差別。","description":"Headscale 自架 VPN 控制層使用前規劃：自架價值、與官方 Tailscale 的差別、帳號與安全邊界。","part":"基礎：認識與安裝"},
+    {"file":"ch2_install.html","num":"02","navLabel":"安裝","title":"安裝 Headscale","pagerTitle":"02 · 安裝 Headscale","card":"把 Headscale add-on 裝進 Home Assistant，認識安裝後的初始狀態。","description":"Home Assistant Headscale add-on 安裝教學：加入安裝、啟動與首次開啟準備。","part":"基礎：認識與安裝"},
+    {"file":"ch3_first_open.html","num":"03","navLabel":"第一次開啟","title":"第一次開啟與登入","pagerTitle":"03 · 第一次開啟與登入","card":"開啟控制介面、認識 CLI／API 與管理員操作。","description":"Headscale 首次開啟：控制介面、CLI 與 API、管理員操作。","part":"基礎：認識與安裝"},
+    {"file":"ch4_user_preauth.html","num":"04","navLabel":"使用者與金鑰","title":"建立使用者與 preauth key","pagerTitle":"04 · 使用者與 preauth key","card":"建立第一個 user、產生 preauth key，準備讓裝置加入。","description":"Headscale 建立使用者與 preauth key：namespace、user 與預授權金鑰。","part":"基礎：認識與安裝"},
+    {"file":"ch5_join_device.html","num":"05","navLabel":"加入裝置","title":"加入第一個裝置","pagerTitle":"05 · 加入第一個裝置","card":"讓 tailscale client 指向 Headscale，登入並加入網段。","description":"Headscale 加入裝置：tailscale client 指向自架控制層、登入與驗證。","part":"建置：建立自己的網段"},
+    {"file":"ch6_nodes.html","num":"06","navLabel":"節點管理","title":"節點管理","pagerTitle":"06 · 節點管理","card":"查看節點、命名、過期與移除。","description":"Headscale 節點管理：查看、命名、過期與移除裝置。","part":"建置：建立自己的網段"},
+    {"file":"ch7_acl.html","num":"07","navLabel":"ACL 存取控制","title":"ACL 存取控制","pagerTitle":"07 · ACL 存取控制","card":"用 policy 控制誰能連誰，最小暴露。","description":"Headscale ACL 教學：policy 規則、存取控制與最小暴露。","part":"建置：建立自己的網段"},
+    {"file":"ch8_routes.html","num":"08","navLabel":"路由","title":"路由與出口節點","pagerTitle":"08 · 路由與出口節點","card":"subnet router、exit node，把整段內網帶回家。","description":"Headscale 路由教學：subnet router、exit node 與內網轉送。","part":"建置：建立自己的網段"},
+    {"file":"ch9_dns.html","num":"09","navLabel":"DNS","title":"DNS 與 MagicDNS","pagerTitle":"09 · DNS 與 MagicDNS","card":"用名稱互連裝置，理解 MagicDNS 與自訂 DNS。","description":"Headscale DNS 教學：MagicDNS、名稱解析與自訂 DNS 設定。","part":"管理：維運與安全"},
+    {"file":"ch10_admin.html","num":"10","navLabel":"管理員設定","title":"管理員設定","pagerTitle":"10 · 管理員設定","card":"policy、DERP、namespaces 與版本更新。","description":"Headscale 管理員設定：policy、DERP、namespaces 與版本更新。","part":"管理：維運與安全"},
+    {"file":"ch11_security.html","num":"11","navLabel":"安全檢查","title":"安全與最小暴露","pagerTitle":"11 · 安全與最小暴露","card":"檢查入口、金鑰、ACL 與公開範圍。","description":"Headscale 安全檢查：入口、preauth key、ACL 與最小暴露。","part":"管理：維運與安全"},
+    {"file":"ch12_troubleshooting.html","num":"12","navLabel":"排錯維護","title":"排錯與維護","pagerTitle":"12 · 排錯與維護","card":"連不上、節點離線、DERP 與更新排錯。","description":"Headscale 排錯教學：連線、節點離線、DERP、更新與備份。","part":"管理：維運與安全"}
+  ],
+  "appendices": [],
+  "sectionLabels": {}
+}

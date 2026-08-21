@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 4 章 · 建立使用者與 preauth key · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale 建立使用者與 preauth key：namespace、user 與預授權金鑰。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch4_user_preauth.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 4 章 · 建立使用者與 preauth key · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale 建立使用者與 preauth key：namespace、user 與預授權金鑰。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch4_user_preauth.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 4 章 · 建立使用者與 preauth key · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale 建立使用者與 preauth key：namespace、user 與預授權金鑰。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html" class="active">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">user 與 key</a>
+      <a href="#steps">建立步驟</a>
+      <a href="#manage">金鑰管理</a>
+      <a href="#organize">怎麼組織</a>
+      <a href="#troubleshoot">建立卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 4 章</div>
+      <h1>建立使用者與 preauth key</h1>
+      <p class="lead">在 Headscale 建立第一個使用者，並產生讓裝置加入網段的 preauth key。讀完這章，你會知道 user 與 key 的關係、怎麼安全地發一把「可撤銷的鑰匙」給新裝置。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">先有使用者，才有裝置可加</h2>
+      <p>Headscale 用「使用者（user）」來歸屬節點：每個加入網段的裝置，都要掛在某個 user 底下。而讓裝置「自己加入」的那把鑰匙，就是 <strong>preauth key</strong>。學會建立 user 與發 key，是讓第二台、第三台裝置進來的前提。</p>
+      <div class="callout"><strong>本章任務：</strong>建立一個 user、產生一把 preauth key、認識 key 的生命週期與安全。這些操作會改變控制層的狀態，動手前先想清楚用途。</div>
+    </section>
+
+    <section id="concept" data-nav="user 與 key">
+      <h2 data-icon="concept">user 與 preauth key 的關係</h2>
+      <table class="data-table">
+        <thead><tr><th>概念</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>user（使用者）</td><td>節點的歸屬單位，一個 user 可以有多台裝置</td></tr>
+          <tr><td>preauth key（預授權金鑰）</td><td>讓裝置免互動登入、直接加入某個 user 的一次性（或可重複）鑰匙</td></tr>
+          <tr><td>node（節點）</td><td>加入後，每台裝置就是一個 node</td></tr>
+        </tbody>
+      </table>
+      <p>流程是：先建 user → 為這個 user 產生 preauth key → 把 key 交給裝置 → 裝置用它加入 → key 用完撤銷。</p>
+      <div class="callout tip"><strong>一句話記住：</strong>user 是「歸屬」，preauth key 是「入場券」。入場券綁定在某個 user，用完就撕掉。</div>
+    </section>
+
+    <section id="steps" data-nav="建立步驟">
+      <h2 data-icon="steps">六步建立 user 與 preauth key</h2>
+      <ol class="steps">
+        <li><h3>進入 Headscale 管理環境</h3><p>在 add-on 的終端或主機上，確認能執行 <code>headscale</code> 命令（第 3 章）。</p></li>
+        <li><h3>建立 user</h3><p>執行 <code>headscale users create &lt;名稱&gt;</code>，例如 <code>headscale users create family</code>，建立一個叫 family 的 user。</p></li>
+        <li><h3>確認 user 已建立</h3><p>用 <code>headscale users list</code> 查看，應看到剛建立的 user 在清單中。</p></li>
+        <li><h3>產生 preauth key</h3><p>執行 <code>headscale preauthkeys create --user family</code>。命令會回傳一把 key，格式類似 <code>headscale-xxxxx...</code>。</p></li>
+        <li><h3>視需要加期限與重複性</h3><p>可加 <code>--expiration 24h</code> 設 24 小時內有效、<code>--reusable</code> 讓它可重複使用（預設一次性）。</p></li>
+        <li><h3>記錄並安全保存 key</h3><p>把回傳的 key 完整記下（用密碼管理器），不要貼在公開聊天或記事本。第 5 章會用到它。</p></li>
+      </ol>
+      <div class="callout warn"><strong>key 只顯示一次：</strong>preauth key 通常在建立時才完整顯示，之後清單可能只顯示前綴。建立當下就要存好。</div>
+    </section>
+
+    <section id="manage" data-nav="金鑰管理">
+      <h2 data-icon="security">金鑰的生命週期與管理</h2>
+      <table class="data-table">
+        <thead><tr><th>動作</th><th>命令（示意）</th><th>時機</th></tr></thead>
+        <tbody>
+          <tr><td>列出某 user 的 key</td><td><code>headscale preauthkeys list --user family</code></td><td>盤點有哪些鑰匙在外面</td></tr>
+          <tr><td>撤銷／過期</td><td><code>headscale preauthkeys expire --user family &lt;key&gt;</code></td><td>裝置加完、或鑰匙外流時</td></tr>
+          <tr><td>刪除 user</td><td><code>headscale users destroy &lt;名稱&gt;</code></td><td>確認該 user 下的節點都處理好之後</td></tr>
+        </tbody>
+      </table>
+      <div class="callout danger"><strong>key 就是鑰匙：</strong>誰拿到 preauth key，就能讓裝置加入你的網段。把它當最高機密；用完、或用錯對象，立刻撤銷。</div>
+    </section>
+
+    <section id="organize" data-nav="怎麼組織">
+      <h2 data-icon="compare">怎麼組織 user 比較好</h2>
+      <p>user 的劃分方式決定之後管理與 ACL 的難易。家庭或小團隊常見兩種做法：</p>
+      <table class="data-table">
+        <thead><tr><th>做法</th><th>適合</th><th>優缺點</th></tr></thead>
+        <tbody>
+          <tr><td>全家共用一個 user</td><td>人少、互信高的家庭</td><td>簡單，但難依人分權限</td></tr>
+          <tr><td>一人一個 user</td><td>要區分權限、逐人管理</td><td>較繁，但 ACL 能精準控管（第 7 章）</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>先簡後繁：</strong>剛開始可先用一個 user 跑通流程，等裝置多了、要區分權限，再拆成一人一個 user。</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="建立卡關">
+      <h2 data-icon="troubleshoot">建立常見卡關</h2>
+      <ol class="steps">
+        <li><h3>users create 失敗</h3><p>可能是名稱已存在，或沒有管理權限。用 <code>headscale users list</code> 確認。</p></li>
+        <li><h3>preauthkeys create 回傳錯誤</h3><p>確認 <code>--user</code> 指定的 user 已存在；拼錯 user 名會失敗。</p></li>
+        <li><h3>key 沒存到就關了視窗</h3><p>key 多半不再完整顯示。最保險是撤銷舊的、重新產生一把新的。</p></li>
+        <li><h3>裝置用 key 加不進去</h3><p>檢查 key 是否過期、是否綁對 user、是否已被用掉（一次性 key）。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">建立常見問題</h2>
+      <details class="faq"><summary>一個 user 可以加幾台裝置？</summary><div class="body">沒有硬性限制，一台家庭裝置、一組家人裝置都可歸在同一個 user，或用多個 user 分開管理。</div></details>
+      <details class="faq"><summary>preauth key 和登入帳密差在哪？</summary><div class="body">preauth key 是讓裝置「免互動」加入的鑰匙，適合自動化或 CLI 情境；互動登入則走瀏覽器授權。兩者都是授權裝置加入的手段。</div></details>
+      <details class="faq"><summary>key 可以設多久有效？</summary><div class="body">用 <code>--expiration</code> 設有效期限（如 24h、1h）。預設有效期限依 Headscale 設定而定，建議臨時用途都設短一點。</div></details>
+      <details class="faq"><summary>「--reusable」是什麼意思？</summary><div class="body">讓同一把 key 可以重複加入多台裝置；不加的話預設是「用一次就失效」。臨時發給單一裝置就不用加。</div></details>
+      <details class="faq"><summary>key 外流了怎麼辦？</summary><div class="body">立刻用 <code>headscale preauthkeys expire</code> 撤銷，再重新產生。已經用這把 key 加入的節點，到節點管理（第 6 章）確認是否要移除。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale 官網</a></td><td>CLI 命令與使用說明</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>users、preauth keys 命令與選項</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale 知識庫</a></td><td>client 端加入與金鑰概念對照</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch3_first_open.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">03 · 第一次開啟與登入</span>
+      </a>
+      <a class="next" href="ch5_join_device.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">05 · 加入第一個裝置</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

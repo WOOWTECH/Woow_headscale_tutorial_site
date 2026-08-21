@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 2 章 · 安裝 Headscale · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Home Assistant Headscale add-on 安裝教學：加入安裝、啟動與首次開啟準備。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch2_install.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 2 章 · 安裝 Headscale · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Home Assistant Headscale add-on 安裝教學：加入安裝、啟動與首次開啟準備。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch2_install.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 2 章 · 安裝 Headscale · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Home Assistant Headscale add-on 安裝教學：加入安裝、啟動與首次開啟準備。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html" class="active">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">add-on 觀念</a>
+      <a href="#steps">安裝步驟</a>
+      <a href="#config">設定選項</a>
+      <a href="#test">安裝驗收</a>
+      <a href="#troubleshoot">安裝卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 2 章</div>
+      <h1>安裝 Headscale</h1>
+      <p class="lead">把 Headscale 控制層裝進 Home Assistant，並認識安裝後的初始狀態。讀完這章，你會知道 add-on 是什麼、啟動時在忙什麼，以及第一次開啟前該確認哪些事。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">先把控制層裝起來</h2>
+      <p>Headscale 是整張私有網段的「大腦」，得先裝起來、跑起來，後面才談得上建立使用者、加入裝置、設定 ACL。在 Home Assistant（HA）上，最省事的方式是透過 <strong>add-on（附加元件）</strong>安裝，不用自己弄伺服器、資料庫、憑證。</p>
+      <p>這章帶你把 add-on 裝好、啟動，並理解首次啟動時它在背景做什麼，避免你以為「怎麼開不起來」其實只是還在初始化。</p>
+      <div class="callout"><strong>本章任務：</strong>加入套件來源、安裝 add-on、啟動，並確認狀態正常。真正建立使用者從第 4 章開始。</div>
+    </section>
+
+    <section id="concept" data-nav="add-on 觀念">
+      <h2 data-icon="concept">add-on 是什麼、幫你省了什麼</h2>
+      <p>add-on 可以想成「一鍵安裝的服務套裝」。Headscale 本體需要資料庫、設定檔、對外 port 等，add-on 把這些打包成一個容器，你只要按安裝，它會自動把該準備的都準備好。</p>
+      <table class="data-table">
+        <thead><tr><th>你不用自己做的事</th><th>add-on 幫你處理</th></tr></thead>
+        <tbody>
+          <tr><td>裝資料庫與相依套件</td><td>容器內已打包好</td></tr>
+          <tr><td>寫設定檔與產生金鑰</td><td>首次啟動會自動初始化</td></tr>
+          <tr><td>處理對外連線</td><td>搭配 Cloudflare Tunnel（本站環境）從外部安全連入</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>本站環境：</strong>你要用的這台已由 WoowTech 裝好、跑起來。如果只是要「使用」，可以略過安裝、直接看第 3 章認識控制介面。</div>
+    </section>
+
+    <section id="steps" data-nav="安裝步驟">
+      <h2 data-icon="steps">六步把 Headscale 裝起來</h2>
+      <ol class="steps">
+        <li><h3>打開 HA 的 Apps 商店</h3><p>在 Home Assistant 左側選單找到「設定 → 附加元件（Add-ons）」，進入附加元件商店。</p></li>
+        <li><h3>加入 WoowTech 套件來源</h3><p>在商店右上角選單選「套件來源（Repositories）」，貼上 WoowTech 的 repository 網址並加入。</p></li>
+        <li><h3>找到 Headscale add-on 並安裝</h3><p>重新整理商店，找到 Headscale，點進去按「安裝」。首次安裝會下載映像檔，需要幾分鐘，別中途關掉。</p></li>
+        <li><h3>檢視設定選項</h3><p>安裝後先看「設定（Configuration）」分頁，確認資料目錄、對外網域等選項。第一次可以先用預設，之後再依需要調整。</p></li>
+        <li><h3>啟動 add-on</h3><p>回到「資訊（Info）」分頁按「啟動（Start）」。第一次啟動會初始化資料庫、產生設定與金鑰，需要等一段時間。</p></li>
+        <li><h3>確認狀態與日誌</h3><p>啟動後看「日誌（Log）」分頁，出現初始化完成的訊息表示就緒。狀態顯示執行中即可進入第 3 章。</p></li>
+      </ol>
+      <div class="callout warn"><strong>初次啟動要有耐心：</strong>第一次啟動要建資料庫、產生設定與金鑰，可能要好幾分鐘。日誌還在跑就代表正常，不要反覆重啟。</div>
+    </section>
+
+    <section id="config" data-nav="設定選項">
+      <h2 data-icon="advanced">值得認識的設定選項</h2>
+      <table class="data-table">
+        <thead><tr><th>選項</th><th>說明</th><th>注意</th></tr></thead>
+        <tbody>
+          <tr><td>資料目錄</td><td>資料庫與設定的存放位置</td><td>要納入備份（附錄 B）</td></tr>
+          <tr><td>對外網域</td><td>控制層供 client 連線用的位址</td><td>要和你的對外網址一致</td></tr>
+          <tr><td>監聽 port</td><td>控制層監聽的連接埠</td><td>通常用預設即可，改錯會連不上</td></tr>
+          <tr><td>log 等級</td><td>日誌詳細程度</td><td>排錯時可暫時調高，事後調回</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><strong>改設定要小心：</strong>add-on 的設定會寫進 Supervisor options，改錯可能讓控制層起不來。拿不準就用預設，或請管理員調整。</div>
+    </section>
+
+    <section id="test" data-nav="安裝驗收">
+      <h2 data-icon="test">安裝完成的驗收</h2>
+      <table class="data-table">
+        <thead><tr><th>檢查項</th><th>通過條件</th></tr></thead>
+        <tbody>
+          <tr><td>add-on 狀態</td><td>顯示「執行中」</td></tr>
+          <tr><td>日誌</td><td>沒有反覆錯誤，出現初始化／就緒訊息</td></tr>
+          <tr><td>版本確認</td><td>能查詢到 Headscale 版本（第 3 章）</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="troubleshoot" data-nav="安裝卡關">
+      <h2 data-icon="troubleshoot">安裝常見卡關</h2>
+      <ol class="steps">
+        <li><h3>安裝一直轉圈</h3><p>首次下載映像檔本來就慢，確認網路正常、耐心等。真的卡住看日誌有沒有錯誤。</p></li>
+        <li><h3>啟動後狀態變回停止</h3><p>看日誌找第一個錯誤訊息（多半是設定或連接埠衝突），修正後再啟動。</p></li>
+        <li><h3>日誌一直報連線錯誤</h3><p>可能是對外網域或 port 沒設對，核對設定選項；仍不行請管理員協助。</p></li>
+        <li><h3>找不到 add-on</h3><p>確認套件來源網址加對、商店有重新整理；必要時重開商店頁面。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">安裝常見問題</h2>
+      <details class="faq"><summary>我只是要用，需要自己安裝嗎？</summary><div class="body">不用。本站環境已由 WoowTech 裝好，直接看第 3 章認識控制介面即可。這章是給要自己裝的人參考。</div></details>
+      <details class="faq"><summary>安裝會佔很多空間嗎？</summary><div class="body">Headscale 本體不大，主要佔空間的是之後的資料庫與日誌。安裝前確認主機有足夠儲存。</div></details>
+      <details class="faq"><summary>可以裝在非 HA 的環境嗎？</summary><div class="body">可以，Headscale 有官方 Docker 與套件安裝方式。本教學以 HA add-on 情境為主，其他方式請參考官方文件。</div></details>
+      <details class="faq"><summary>安裝後要先做什麼？</summary><div class="body">先確認 add-on 正常執行、能查到版本，再依第 4 章建立使用者與金鑰。</div></details>
+      <details class="faq"><summary>啟動很久是正常的嗎？</summary><div class="body">第一次啟動要初始化資料庫與設定，幾分鐘內都算正常。看日誌還在動就別重啟。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale 官網</a></td><td>產品定位與文件入口</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>安裝、設定與版本</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale 知識庫</a></td><td>client 端操作與概念對照</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch1_intro.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">01 · 需求與安全邊界</span>
+      </a>
+      <a class="next" href="ch3_first_open.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">03 · 第一次開啟與登入</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

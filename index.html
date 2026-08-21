@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Headscale 自架 VPN 控制層指南 · 自架的 Tailscale 控制伺服器</title>
+  <meta name="description" content="12 章繁體中文 Headscale 教學：從安裝、建立使用者與 preauth key、加入裝置，到節點管理、ACL、路由、DNS、管理員設定與安全排錯。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="Headscale 自架 VPN 控制層指南 · 自架的 Tailscale 控制伺服器" />
+  <meta property="og:description" content="12 章繁體中文 Headscale 教學：從安裝、建立使用者與 preauth key、加入裝置，到節點管理、ACL、路由、DNS、管理員設定與安全排錯。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Headscale 自架 VPN 控制層指南 · 自架的 Tailscale 控制伺服器" />
+  <meta name="twitter:description" content="12 章繁體中文 Headscale 教學：從安裝、建立使用者與 preauth key、加入裝置，到節點管理、ACL、路由、DNS、管理員設定與安全排錯。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <main class="home">
+    <div class="hero">
+      <span class="kicker-script">Secure</span>
+      <div class="kicker">Headscale 自架 VPN 控制層指南</div>
+      <h1>自架的 Tailscale 控制伺服器</h1>
+      <p>12 章繁體中文 Headscale 教學：從安裝、建立使用者與 preauth key、加入裝置，到節點管理、ACL、路由、DNS、管理員設定與安全排錯。</p>
+      <a class="hero-action" href="#course-path"><i class="mdi mdi-arrow-down" aria-hidden="true"></i> 從課程地圖開始</a>
+    </div>
+
+    <section class="course-path" id="course-path" aria-labelledby="course-path-title">
+      <div class="course-path-copy">
+        <p class="eyebrow">12 chapters · one secure tunnel</p>
+        <h2 id="course-path-title">用清楚的順序，建立你的安全入口</h2>
+        <p>先確認網域與 Home Assistant，再理解 Setup、授權和 hostname；完成後用 Dashboard、Config 與 Logs 建立可驗證、可回復的維護節奏。</p>
+      </div>
+      <ol class="course-path-list">
+        <li><i class="mdi mdi-cloud-lock-outline" aria-hidden="true"></i><span><strong>先建立入口</strong>安裝 Web GUI 並確認前置條件。</span></li>
+        <li><i class="mdi mdi-link-variant" aria-hidden="true"></i><span><strong>再完成建置</strong>理解授權、hostname 與 Tunnel 狀態。</span></li>
+        <li><i class="mdi mdi-shield-check" aria-hidden="true"></i><span><strong>最後守住邊界</strong>用 Logs、安全檢查與排錯維持服務。</span></li>
+      </ol>
+    </section>
+
+    <section class="chapter-index">
+      <h2 class="index-title">基礎：認識與安裝</h2>
+      <div class="chapter-grid">
+        <a class="chapter-card" href="ch1_intro.html">
+          <span class="num">01</span>
+          <h3>開始前</h3>
+          <p>先確認 Headscale 是什麼、自架控制層的價值，以及與官方 Tailscale 的差別。</p>
+        </a>
+        <a class="chapter-card" href="ch2_install.html">
+          <span class="num">02</span>
+          <h3>安裝 Headscale</h3>
+          <p>把 Headscale add-on 裝進 Home Assistant，認識安裝後的初始狀態。</p>
+        </a>
+        <a class="chapter-card" href="ch3_first_open.html">
+          <span class="num">03</span>
+          <h3>第一次開啟與登入</h3>
+          <p>開啟控制介面、認識 CLI／API 與管理員操作。</p>
+        </a>
+        <a class="chapter-card" href="ch4_user_preauth.html">
+          <span class="num">04</span>
+          <h3>建立使用者與 preauth key</h3>
+          <p>建立第一個 user、產生 preauth key，準備讓裝置加入。</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="chapter-index chapter-index-spaced">
+      <h2 class="index-title">建置：建立自己的網段</h2>
+      <div class="chapter-grid">
+        <a class="chapter-card" href="ch5_join_device.html">
+          <span class="num">05</span>
+          <h3>加入第一個裝置</h3>
+          <p>讓 tailscale client 指向 Headscale，登入並加入網段。</p>
+        </a>
+        <a class="chapter-card" href="ch6_nodes.html">
+          <span class="num">06</span>
+          <h3>節點管理</h3>
+          <p>查看節點、命名、過期與移除。</p>
+        </a>
+        <a class="chapter-card" href="ch7_acl.html">
+          <span class="num">07</span>
+          <h3>ACL 存取控制</h3>
+          <p>用 policy 控制誰能連誰，最小暴露。</p>
+        </a>
+        <a class="chapter-card" href="ch8_routes.html">
+          <span class="num">08</span>
+          <h3>路由與出口節點</h3>
+          <p>subnet router、exit node，把整段內網帶回家。</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="chapter-index chapter-index-spaced">
+      <h2 class="index-title">管理：維運與安全</h2>
+      <div class="chapter-grid">
+        <a class="chapter-card" href="ch9_dns.html">
+          <span class="num">09</span>
+          <h3>DNS 與 MagicDNS</h3>
+          <p>用名稱互連裝置，理解 MagicDNS 與自訂 DNS。</p>
+        </a>
+        <a class="chapter-card" href="ch10_admin.html">
+          <span class="num">10</span>
+          <h3>管理員設定</h3>
+          <p>policy、DERP、namespaces 與版本更新。</p>
+        </a>
+        <a class="chapter-card" href="ch11_security.html">
+          <span class="num">11</span>
+          <h3>安全與最小暴露</h3>
+          <p>檢查入口、金鑰、ACL 與公開範圍。</p>
+        </a>
+        <a class="chapter-card" href="ch12_troubleshooting.html">
+          <span class="num">12</span>
+          <h3>排錯與維護</h3>
+          <p>連不上、節點離線、DERP 與更新排錯。</p>
+        </a>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</body>
+</html>

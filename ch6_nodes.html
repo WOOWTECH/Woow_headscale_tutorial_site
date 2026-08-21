@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 6 章 · 節點管理 · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale 節點管理：查看、命名、過期與移除裝置。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch6_nodes.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 6 章 · 節點管理 · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale 節點管理：查看、命名、過期與移除裝置。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch6_nodes.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 6 章 · 節點管理 · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale 節點管理：查看、命名、過期與移除裝置。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html" class="active">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">節點是什麼</a>
+      <a href="#steps">管理步驟</a>
+      <a href="#status">狀態與到期</a>
+      <a href="#expire">過期與重驗證</a>
+      <a href="#troubleshoot">節點卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 6 章</div>
+      <h1>節點管理</h1>
+      <p class="lead">學會查看、命名、過期與移除網段裡的節點。讀完這章，你會知道每個裝置在 Headscale 裡的狀態、何時該過期、何時該移除，把網段顧得清清楚楚。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">節點是網段的成員名單</h2>
+      <p>每台加入的裝置，在 Headscale 裡就是一個「節點（node）」。時間一久，你可能不記得有哪些裝置在網上、哪些該退休。節點管理讓你看清成員名單、控制誰還在、誰該移除。</p>
+      <div class="callout"><strong>本章任務：</strong>列出節點、看懂狀態、幫節點命名、讓不再用的節點過期或移除。移除節點只影響那台裝置的連線，不影響其他成員。</div>
+      <div class="callout warn"><strong>移除要謹慎：</strong>移除節點後，那台裝置就再也連不進網段，要重新加入得用新的 preauth key（第 4、5 章）。動手前確認它是真的不要了。</div>
+    </section>
+
+    <section id="concept" data-nav="節點是什麼">
+      <h2 data-icon="concept">節點、狀態與識別</h2>
+      <p>Headscale 用幾個欄位描述每個節點：</p>
+      <table class="data-table">
+        <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>ID</td><td>節點的唯一編號（用於多數 CLI 命令）</td></tr>
+          <tr><td>Name</td><td>裝置名稱，可自行重新命名以便辨識</td></tr>
+          <tr><td>IP address</td><td>節點在網段內的私有 IP</td></tr>
+          <tr><td>Last seen</td><td>上次上線時間，判斷裝置是否活躍</td></tr>
+          <tr><td>Expired</td><td>是否已過期（過期後裝置需重新驗證才能連）</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>ID 是敏感值：</strong>節點 ID、IP 在分享畫面或求助時記得遮罩，不要整段貼出去。</div>
+    </section>
+
+    <section id="steps" data-nav="管理步驟">
+      <h2 data-icon="steps">六步完成一次節點管理</h2>
+      <ol class="steps">
+        <li><h3>列出所有節點</h3><p>用 <code>headscale nodes list</code> 查看網段裡所有節點，含 ID、名稱、IP 與狀態。</p></li>
+        <li><h3>認出每台裝置</h3><p>對照名稱與「上次上線」，認出哪台是哪台。名稱太像的就先命名（下一步）。</p></li>
+        <li><h3>幫節點改名</h3><p>用 <code>headscale nodes rename --identifier &lt;ID&gt; 新名稱</code> 把名稱改成好認的，例如「客廳電視」。</p></li>
+        <li><h3>看狀態與到期</h3><p>確認哪些節點已過期（Expired）、哪些還在線。過期代表裝置需要重新驗證。</p></li>
+        <li><h3>過期不再用的節點</h3><p>用 <code>headscale nodes expire --identifier &lt;ID&gt;</code> 讓某個節點過期，它會失去連線、需要重新登入。</p></li>
+        <li><h3>移除確定不要的節點</h3><p>用 <code>headscale nodes delete --identifier &lt;ID&gt;</code> 移除。移除前再確認一次。</p></li>
+      </ol>
+      <div class="callout warn"><strong>命令版本差異：</strong>Headscale CLI 的參數（<code>--identifier</code> 或直接用 ID）會隨版本微調，以你環境的 <code>headscale nodes --help</code> 為準。</div>
+    </section>
+
+    <section id="status" data-nav="狀態與到期">
+      <h2 data-icon="compare">狀態與到期怎麼看</h2>
+      <p>節點主要有「在線」「離線」「已過期」幾種樣貌。理解它們，你就知道何時該處理：</p>
+      <table class="data-table">
+        <thead><tr><th>狀態</th><th>代表什麼</th><th>該做什麼</th></tr></thead>
+        <tbody>
+          <tr><td>在線（最近上線）</td><td>裝置正常運作、剛回報過</td><td>不用動</td></tr>
+          <tr><td>離線一段時間</td><td>裝置關機或暫時離線</td><td>先觀察，不必急著移除</td></tr>
+          <tr><td>已過期（Expired）</td><td>裝置需重新驗證才能連</td><td>讓裝置重新登入，或直接移除</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>過期不是壞事：</strong>過期是一種安全機制，讓久久沒用、可能失竊的裝置自動斷線，直到重新驗證。</div>
+    </section>
+
+    <section id="expire" data-nav="過期與重驗證">
+      <h2 data-icon="restore">過期與重新驗證</h2>
+      <p>當你「過期」一個節點，那台裝置會被踢出網段。要讓它回來，得在裝置端重新登入驗證（第 5 章）。這適合：</p>
+      <ul>
+        <li>懷疑裝置失竊或不再信任。</li>
+        <li>暫時停用某台裝置，之後再恢復。</li>
+        <li>強制某台裝置重新走一次驗證流程。</li>
+      </ul>
+      <div class="callout warn"><strong>過期 ≠ 移除：</strong>過期只是讓它斷線、可重新驗證；移除是把節點從名單刪掉，要重新加入得用新的 preauth key。</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="節點卡關">
+      <h2 data-icon="troubleshoot">節點常見卡關</h2>
+      <ol class="steps">
+        <li><h3>節點一直離線</h3><p>先確認那台裝置有開機、tailscale client 有在跑。裝置端正常再回頭查控制層（第 12 章）。</p></li>
+        <li><h3>改名後沒生效</h3><p>名稱同步需要一點時間；重新整理列表，或用 <code>nodes list</code> 再看一次。</p></li>
+        <li><h3>誤刪了節點</h3><p>重新加入需新的 preauth key。養成移除前雙重確認的習慣。</p></li>
+        <li><h3>命令找不到或參數不同</h3><p>Headscale 版本不同參數會變。先 <code>headscale nodes --help</code> 看當下支援的寫法。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">節點常見問題</h2>
+      <details class="faq"><summary>一個節點就是一台裝置嗎？</summary><div class="body">通常是一台裝置一個節點。同一台裝置重裝 client 可能產生新節點，舊的記得清掉。</div></details>
+      <details class="faq"><summary>節點 IP 會變嗎？</summary><div class="body">網段內 IP 通常穩定，但可能因重新加入而改變。用名稱識別比記 IP 可靠。</div></details>
+      <details class="faq"><summary>過期後裝置自己會恢復嗎？</summary><div class="body">不會自動恢復，要在裝置端重新登入驗證，才會回到網段。</div></details>
+      <details class="faq"><summary>移除節點會影響別人嗎？</summary><div class="body">不會。移除只影響那台裝置，其他節點照常互連。</div></details>
+      <details class="faq"><summary>可以一次移除很多節點嗎？</summary><div class="body">可以逐一移除；沒有把握時先「過期」而非「移除」，保留恢復空間。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale 官網</a></td><td>CLI 命令與節點管理</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>版本、CLI 參數與變更</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale 知識庫</a></td><td>節點與狀態的概念對照</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch5_join_device.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">05 · 加入第一個裝置</span>
+      </a>
+      <a class="next" href="ch7_acl.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">07 · ACL 存取控制</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

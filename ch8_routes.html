@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 8 章 · 路由與出口節點 · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale 路由教學：subnet router、exit node 與內網轉送。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch8_routes.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 8 章 · 路由與出口節點 · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale 路由教學：subnet router、exit node 與內網轉送。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch8_routes.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 8 章 · 路由與出口節點 · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale 路由教學：subnet router、exit node 與內網轉送。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html" class="active">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">兩種路由</a>
+      <a href="#steps">設定步驟</a>
+      <a href="#exit">出口節點</a>
+      <a href="#troubleshoot">路由卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 8 章</div>
+      <h1>路由與出口節點</h1>
+      <p class="lead">用 subnet router 把整段內網帶進你的私有網段，用 exit node 讓流量從某個裝置出去。讀完這章，你能在家裡以外的網路，安全存取家裡的 NAS、印表機等整個內網。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">不只是連裝置，還能把整段內網帶回家</h2>
+      <p>前面幾章連的是「單一裝置」。但家裡往往有一整段內網（NAS、印表機、監視器、路由器），它們不一定能裝 tailscale。用 <strong>subnet router</strong>，你可以指定一台裝置當「橋」，把整段內網都接進私有網段。</p>
+      <div class="callout"><strong>本章任務：</strong>了解 subnet router 與 exit node 的差別，學會宣告與啟用路由。路由設定會影響整個網段，操作前先確認範圍。</div>
+    </section>
+
+    <section id="concept" data-nav="兩種路由">
+      <h2 data-icon="concept">subnet router 與 exit node</h2>
+      <table class="data-table">
+        <thead><tr><th>概念</th><th>做什麼</th><th>典型用途</th></tr></thead>
+        <tbody>
+          <tr><td><strong>subnet router</strong></td><td>把某段內網（如 192.168.1.0/24）接進網段，讓其他節點能存取該內網的裝置</td><td>在外存取家裡的 NAS、印表機</td></tr>
+          <tr><td><strong>exit node</strong></td><td>讓其他節點的「所有對外流量」從這台出去</td><td>在咖啡廳用家裡的 IP 上網、加密對外連線</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>兩者不同：</strong>subnet router 是「把內網帶進來」；exit node 是「把流量送出去」。別搞混。</div>
+    </section>
+
+    <section id="steps" data-nav="設定步驟">
+      <h2 data-icon="steps">六步設定 subnet router</h2>
+      <ol class="steps">
+        <li><h3>選一台常開機的裝置當橋</h3><p>選一台在家裡、會一直開機的裝置（例如 Home Assistant 主機、NAS）當 subnet router。</p></li>
+        <li><h3>宣告要轉送的內網</h3><p>在該裝置執行 <code>tailscale up --advertise-routes=192.168.1.0/24</code>（換成你家的網段）。</p></li>
+        <li><h3>在控制層核准路由</h3><p>用 Headscale 的 route 命令查看並啟用這個 subnet 路由，否則不會生效。</p></li>
+        <li><h3>其他裝置測試連內網</h3><p>從另一個節點 ping 內網裝置（如 <code>ping 192.168.1.10</code>），確認能通。</p></li>
+        <li><h3>需要時設 exit node</h3><p>在橋接裝置加 <code>--advertise-exit-node</code>，其他節點再指定用它當出口。</p></li>
+        <li><h3>盤點並最小化</h3><p>只宣告真正需要的網段，別把整個大網段全開出去。</p></li>
+      </ol>
+      <div class="callout danger"><strong>最小暴露：</strong>宣告的網段越寬，能碰到的東西越多。只開需要的那一小段（例如 NAS 所在的子網），不要整段內網全開。</div>
+    </section>
+
+    <section id="exit" data-nav="出口節點">
+      <h2 data-icon="remote">出口節點（exit node）</h2>
+      <p>exit node 讓你的裝置把「所有對外流量」都走某一台節點出去。這在「人在外面、想要用家裡的 IP 上網」或「加密公共 Wi-Fi 的對外連線」時很有用。</p>
+      <ul>
+        <li>設定後，其他節點要「手動選擇」這台當 exit node 才會生效。</li>
+        <li>注意：所有流量都經過它，出口那台的頻寬與位置會影響速度。</li>
+        <li>用它當「翻牆回家」的工具時，務必遵守當地的服務條款。</li>
+      </ul>
+      <div class="callout warn"><strong>exit node 不是萬能代理：</strong>它只是把你的出口改到別處，不改變內容加密或隱私的基礎原則。</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="路由卡關">
+      <h2 data-icon="troubleshoot">路由常見卡關</h2>
+      <ol class="steps">
+        <li><h3>宣告了但內網連不上</h3><p>確認控制層已「啟用」該 route（宣告不等於啟用）；確認網段寫對。</p></li>
+        <li><h3>能 ping 到 router 但 ping 不到內網</h3><p>檢查 router 那台是否開啟 IP 轉送（IP forwarding）；不同 OS 設定不同。</p></li>
+        <li><h3>exit node 沒生效</h3><p>其他節點要「手動選」這台當 exit node；確認這台有宣告 exit node 且控制層已接受。</p></li>
+        <li><h3>內網裝置不會回包</h3><p>內網裝置的防火牆或預設閘道可能擋來自 tailscale 網段的流量，檢查內網路由。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">路由常見問題</h2>
+      <details class="faq"><summary>subnet router 那台一定要一直開機嗎？</summary><div class="body">要。它是「橋」，關了就斷。選一台穩定、常開機的裝置。</div></details>
+      <details class="faq"><summary>一次能宣告多個網段嗎？</summary><div class="body">能，逗號分隔多個 <code>--advertise-routes</code> 網段。但記得最小化，只開需要的。</div></details>
+      <details class="faq"><summary>exit node 和 VPN 一樣嗎？</summary><div class="body">效果類似「把出口改到別處」，但它是 Tailscale/Headscale 網狀架構的一環，不是傳統集中式 VPN。</div></details>
+      <details class="faq"><summary>宣告路由有安全風險嗎？</summary><div class="body">有，等於把該網段曝露給網段內其他節點。務必搭配 ACL 限制誰能連，且只開最小網段。</div></details>
+      <details class="faq"><summary>手機能當 subnet router 嗎？</summary><div class="body">理論上可以，但不建議（手機常休眠、IP 轉送支援有限）。用常開機的裝置較穩。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://tailscale.com/kb/1019/subnets" rel="noopener">Tailscale：subnet router</a></td><td>子網路由概念與設定</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/1103/exit-nodes" rel="noopener">Tailscale：exit node</a></td><td>出口節點用途與設定</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>route 相關命令與實作</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch7_acl.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">07 · ACL 存取控制</span>
+      </a>
+      <a class="next" href="ch9_dns.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">09 · DNS 與 MagicDNS</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

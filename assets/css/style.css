@@ -1,0 +1,335 @@
+:root {
+  --ww-blue: #6183FC;
+  --ww-blue-700: #3F63E8;
+  --ww-blue-050: #EEF2FF;
+  --ww-orange: #E66D3E;
+  --ww-white: #FFFFFF;
+  --ww-gray: #EFF1F5;
+  --ww-deep-gray: #646262;
+  --ww-black: #212121;
+  --text-primary: var(--ww-black);
+  --text-secondary: var(--ww-deep-gray);
+  --surface-page: var(--ww-gray);
+  --surface-card: var(--ww-white);
+  --surface-muted: #F7F8FA;
+  --hairline: rgba(33, 33, 33, .08);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --section-y: 96px;
+  --radius-sm: 12px;
+  --radius: 20px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 2px 8px rgba(33, 33, 33, .06);
+  --shadow-md: 0 10px 28px rgba(33, 33, 33, .08);
+  --shadow-lg: 0 22px 52px rgba(33, 33, 33, .12);
+  --shadow-float: 0 26px 60px -18px rgba(97, 131, 252, .28);
+  --glass-bg: rgba(255, 255, 255, .7);
+  --glass-border: rgba(255, 255, 255, .9);
+  --glass-blur: 20px;
+  --font-title: "Poppins", "Noto Sans TC", sans-serif;
+  --font-body: "Outfit", "Noto Sans TC", sans-serif;
+  --font-script: "Yellowtail", cursive;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --sidebar-w: 304px;
+  --max-content: 790px;
+  --motion: 220ms cubic-bezier(.4, 0, .2, 1);
+}
+
+* { box-sizing: border-box; }
+html { background: var(--surface-page); scroll-behavior: smooth; }
+body {
+  min-width: 0;
+  margin: 0;
+  color: var(--text-primary);
+  background: var(--surface-page);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img { max-width: 100%; }
+a { color: var(--ww-blue-700); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--ww-blue-700); }
+a, button, summary { -webkit-tap-highlight-color: transparent; }
+a, button, .chapter-card, .pager a, .sidebar a, .nav-toggle, details.faq summary {
+  transition: color var(--motion), background var(--motion), border-color var(--motion), box-shadow var(--motion), transform var(--motion);
+}
+a:active, button:active, .chapter-card:active, .pager a:active { transform: scale(.97); }
+a:focus-visible, button:focus-visible, summary:focus-visible, section h2:focus-visible {
+  outline: 3px solid var(--ww-blue-700);
+  outline-offset: 3px;
+}
+h1, h2, h3, h4 { margin-top: 0; color: var(--text-primary); font-family: var(--font-title); letter-spacing: -.02em; }
+
+/* Shared chapter shell */
+.layout { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); min-height: 100vh; }
+.layout > * { min-width: 0; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-7) var(--space-5);
+  background: var(--surface-card);
+  border-right: 1px solid var(--hairline);
+}
+.sidebar .brand {
+  display: block;
+  width: fit-content;
+  margin: 0 0 var(--space-1);
+  color: var(--text-primary);
+  font: 600 20px/1.1 var(--font-title);
+  letter-spacing: -.03em;
+  text-decoration: none;
+}
+.sidebar .brand::before {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  margin-right: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--ww-blue-050);
+  color: var(--ww-blue);
+  font: 20px/1 "Material Design Icons";
+  content: "\F06A9";
+  vertical-align: -5px;
+}
+.sidebar .brand-sub { margin: 0 0 var(--space-7); color: var(--text-secondary); font-size: 13px; }
+.sidebar h2 { margin: 0 0 var(--space-2); color: var(--text-secondary); font: 600 11px/1.4 var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
+.sidebar ol { margin: 0; padding: 0; list-style: none; counter-reset: chapter; }
+.sidebar ol li { margin: 0 0 var(--space-1); counter-increment: chapter; }
+.sidebar ol li a {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.35;
+  text-decoration: none;
+}
+.sidebar ol li a::before { width: 22px; flex: 0 0 22px; color: #9A9A9A; content: counter(chapter, decimal-leading-zero); font: 600 11px/1 var(--font-title); font-variant-numeric: tabular-nums; }
+.sidebar ol li a:hover, .sidebar ol li a.active { background: var(--ww-blue-050); color: var(--ww-blue-700); }
+.sidebar ol li a.active { font-weight: 600; }
+.sidebar ol li a.active::before { color: var(--ww-blue); }
+.sidebar ol li.part-label { margin: var(--space-5) 0 var(--space-2); padding: 0 var(--space-3); color: #989898; counter-increment: none; font: 600 10px/1.4 var(--font-body); letter-spacing: .1em; text-transform: uppercase; }
+.sidebar ol li.part-label:first-child { margin-top: 0; }
+.toc-in-chapter { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--hairline); }
+.sidebar .toc-in-chapter a { display: flex; min-height: 44px; align-items: center; padding: 7px var(--space-3); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 13px; line-height: 1.35; text-decoration: none; }
+.sidebar .toc-in-chapter a:hover, .sidebar .toc-in-chapter a.active { background: var(--surface-muted); color: var(--ww-blue-700); }
+.sidebar .toc-in-chapter a.active { font-weight: 600; }
+.nav-toggle { display: none; }
+
+.content { width: min(100%, calc(var(--max-content) + 160px)); padding: 72px 80px 112px; overflow-x: hidden; }
+.chapter-header { max-width: var(--max-content); margin-bottom: 64px; }
+.chapter-header .kicker, .home .hero .kicker { margin-bottom: var(--space-3); color: var(--ww-blue); font: 600 11px/1.4 var(--font-title); letter-spacing: .14em; text-transform: uppercase; }
+.chapter-header h1 { margin-bottom: var(--space-4); font-size: clamp(36px, 4.2vw, 52px); font-weight: 700; line-height: 1.08; }
+.chapter-header .lead { max-width: 720px; margin: 0; color: var(--text-secondary); font-size: 18px; font-weight: 300; line-height: 1.75; }
+section { max-width: var(--max-content); margin-bottom: var(--section-y); scroll-margin-top: var(--space-7); }
+section h2 { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-5); font-size: clamp(22px, 2.6vw, 28px); font-weight: 600; line-height: 1.12; }
+section h2[data-icon]::before { display: inline-flex; width: 48px; height: 48px; flex: 0 0 48px; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--ww-blue-050); color: var(--ww-blue); font: 24px/1 "Material Design Icons"; }
+section h3 { margin: var(--space-7) 0 var(--space-2); font-size: 18px; font-weight: 600; line-height: 1.2; }
+section p, section li { color: var(--text-secondary); font-size: 16px; }
+section p { margin: 0 0 var(--space-4); }
+section ul, section ol:not(.steps) { margin: 0 0 var(--space-5); padding-left: 1.3em; }
+section li + li { margin-top: var(--space-2); }
+
+/* Calm MDI map used by the authored chapter headings. */
+section h2[data-icon="why"]::before { content: "\F0335"; }
+section h2[data-icon="concept"]::before { content: "\F04FC"; }
+section h2[data-icon="what"]::before { content: "\F09EE"; }
+section h2[data-icon="steps"]::before { content: "\F027B"; }
+section h2[data-icon="plan"]::before { content: "\F0821"; }
+section h2[data-icon="now"]::before { content: "\F0349"; }
+section h2[data-icon="done"]::before { content: "\F05E1"; }
+section h2[data-icon="assign"]::before { content: "\F1616"; }
+section h2[data-icon="rename"]::before { content: "\F0455"; }
+section h2[data-icon="labels"]::before { content: "\F1375"; }
+section h2[data-icon="persons"]::before { content: "\F0010"; }
+section h2[data-icon="tabs"]::before { content: "\F04E9"; }
+section h2[data-icon="tips"]::before { content: "\F04CF"; }
+section h2[data-icon="app"]::before { content: "\F09D5"; }
+section h2[data-icon="login"]::before { content: "\F0306"; }
+section h2[data-icon="test"]::before { content: "\F0668"; }
+section h2[data-icon="advanced"]::before { content: "\F062E"; }
+section h2[data-icon="addons"]::before { content: "\F0431"; }
+section h2[data-icon="faq"]::before { content: "\F0186"; }
+section h2[data-icon="troubleshoot"]::before { content: "\F0BE0"; }
+section h2[data-icon="remote"]::before { content: "\F0D3D"; }
+section h2[data-icon="security"]::before { content: "\F0CCC"; }
+section h2[data-icon="compare"]::before { content: "\F05D1"; }
+section h2[data-icon="records"]::before { content: "\F0EBF"; }
+section h2[data-icon="network"]::before { content: "\F1087"; }
+section h2[data-icon="warning"]::before { content: "\F0029"; }
+section h2[data-icon="url"]::before { content: "\F059F"; }
+section h2[data-icon="enter"]::before { content: "\F05FC"; }
+section h2[data-icon="profile"]::before { content: "\F1370"; }
+section h2[data-icon="companion"]::before { content: "\F0121"; }
+section h2[data-icon="modes"]::before { content: "\F04E1"; }
+section h2[data-icon="auto"]::before { content: "\F04E6"; }
+section h2[data-icon="blueprints"]::before { content: "\F0A66"; }
+section h2[data-icon="restore"]::before { content: "\F006F"; }
+section h2[data-icon="location"]::before { content: "\F0352"; }
+section h2[data-icon="entity_id_trap"]::before { content: "\F0ECD"; }
+section h2[data-icon="theme"]::before { content: "\F03D8"; }
+section h2[data-icon="integration"]::before { content: "\F0339"; }
+section h2[data-icon="protocol"]::before { content: "\F0FD8"; }
+section h2[data-icon="todo"]::before { content: "\F08A8"; }
+section h2[data-icon="energy"]::before { content: "\F140B"; }
+section h2[data-icon="history"]::before { content: "\F012A"; }
+section h2[data-icon="ai"]::before { content: "\F167A"; }
+section h2[data-icon="docker"]::before { content: "\F0868"; }
+section h2[data-icon="hardware"]::before { content: "\F061A"; }
+section h2[data-icon="cost"]::before { content: "\F0116"; }
+section h2[data-icon="book"]::before { content: "\F14F7"; }
+section h2[data-icon="wifi"]::before { content: "\F05A9"; }
+
+.steps { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+.steps > li { position: relative; min-height: 84px; margin-bottom: var(--space-4); padding: var(--space-6) var(--space-6) var(--space-6) 84px; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--surface-card); box-shadow: var(--shadow-sm); counter-increment: step; }
+.steps > li::before { position: absolute; top: var(--space-5); left: var(--space-5); display: flex; width: 44px; height: 44px; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--ww-blue-050); color: var(--ww-blue); content: counter(step, decimal-leading-zero); font: 600 13px/1 var(--font-title); }
+.steps > li h3 { margin: 0 0 var(--space-2); font-size: 17px; }
+.steps > li p:last-child { margin-bottom: 0; }
+
+.callout { position: relative; min-height: 68px; margin: var(--space-5) 0; padding: 18px var(--space-5) 18px 76px; border: 1px solid rgba(97, 131, 252, .2); border-radius: var(--radius); background: var(--ww-blue-050); color: var(--text-secondary); font-size: 16px; }
+.callout::before { position: absolute; top: 14px; left: var(--space-4); display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--ww-white); color: var(--ww-blue); content: "\F02FD"; font: 22px/1 "Material Design Icons"; }
+.callout.tip::before { content: "\F0335"; }
+.callout.warn::before { content: "\F0026"; }
+.callout.danger::before { content: "\F0028"; }
+.callout strong { color: var(--text-primary); }
+
+figure.shot { margin: var(--space-6) 0; overflow: hidden; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--surface-card); box-shadow: var(--shadow-sm); }
+figure.shot img { display: block; width: 100%; height: auto; background: var(--surface-muted); }
+figure.shot figcaption { padding: var(--space-3) var(--space-5); border-top: 1px solid var(--hairline); color: var(--text-secondary); background: var(--surface-muted); font-size: 14px; }
+figure.shot figcaption strong { color: var(--ww-blue-700); }
+
+.data-table { display: block; width: 100%; max-width: 100%; margin: var(--space-5) 0; overflow-x: auto; border: 1px solid var(--hairline); border-radius: var(--radius); border-spacing: 0; background: var(--surface-card); box-shadow: var(--shadow-sm); font-size: 16px; }
+.data-table th, .data-table td { min-width: 120px; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--hairline); color: var(--text-secondary); text-align: left; vertical-align: top; }
+.data-table th { position: sticky; top: 0; background: var(--surface-muted); color: var(--text-primary); font: 600 16px/1.4 var(--font-title); white-space: nowrap; }
+.data-table tr:last-child td { border-bottom: 0; }
+.data-table code { white-space: normal; overflow-wrap: anywhere; }
+.data-table tbody tr:hover td { background: #FAFBFF; }
+pre.code-block { max-width: 100%; margin: var(--space-5) 0; padding: var(--space-5); overflow-x: auto; border: 1px solid var(--hairline); border-radius: var(--radius); background: #F7F8FC; color: var(--text-primary); font: 16px/1.7 var(--font-mono); box-shadow: var(--shadow-sm); }
+code { padding: 2px 6px; border-radius: var(--radius-sm); background: var(--ww-blue-050); color: var(--ww-blue-700); font: 1em/1.45 var(--font-mono); }
+pre code { padding: 0; background: transparent; color: inherit; }
+kbd { padding: 2px 8px; border: 1px solid var(--hairline); border-bottom-width: 2px; border-radius: var(--radius-sm); background: var(--surface-card); color: var(--text-primary); font: 500 12px/1.6 var(--font-body); }
+
+details.faq { margin-bottom: var(--space-3); overflow: hidden; border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--surface-card); box-shadow: var(--shadow-sm); }
+details.faq summary { position: relative; display: block; min-height: 64px; padding: var(--space-5) 72px var(--space-5) var(--space-5); cursor: pointer; color: var(--text-primary); font: 600 16px/1.45 var(--font-title); list-style: none; }
+details.faq summary::-webkit-details-marker { display: none; }
+details.faq summary::after { position: absolute; top: 12px; right: 12px; display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--ww-blue-050); color: var(--ww-blue); content: "\F0415"; font: 22px/1 "Material Design Icons"; }
+details.faq[open] summary { border-bottom: 1px solid var(--hairline); }
+details.faq[open] summary::after { content: "\F0374"; }
+details.faq .body { padding: var(--space-5); color: var(--text-secondary); font-size: 16px; }
+
+.pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); max-width: var(--max-content); margin-top: 80px; padding-top: var(--space-8); border-top: 1px solid var(--hairline); }
+.pager a { display: block; min-height: 104px; padding: var(--space-5); border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); text-decoration: none; }
+.pager a:hover { border-color: rgba(97, 131, 252, .45); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.pager a.next { text-align: right; }
+.pager a.disabled { opacity: .5; pointer-events: none; }
+.pager .label { display: block; margin-bottom: var(--space-2); color: var(--text-secondary); font: 600 11px/1.4 var(--font-title); letter-spacing: .09em; text-transform: uppercase; }
+.pager .label i { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--ww-blue-050); color: var(--ww-blue); font-size: 16px; vertical-align: -6px; }
+.pager .title { display: block; font: 600 16px/1.3 var(--font-title); }
+.site-footer { max-width: var(--max-content); margin-top: var(--space-12); padding-top: var(--space-6); border-top: 1px solid var(--hairline); color: var(--text-secondary); font-size: 13px; line-height: 1.7; }
+.site-footer p { margin: 0 0 var(--space-2); }
+.site-footer a { color: inherit; }
+.site-footer .footer-meta { color: #838383; font-size: 12px; }
+
+/* Landing and recovery pages */
+.home { width: min(100%, 1120px); margin: 0 auto; padding: 96px var(--space-8) 112px; }
+.home .hero { position: relative; margin-bottom: 80px; padding: 72px var(--space-8); overflow: hidden; border: 1px solid var(--glass-border); border-radius: var(--radius-lg); background: var(--ww-blue-050); box-shadow: var(--shadow-float); text-align: center; }
+.home .hero::before { position: absolute; top: -40px; right: 6%; color: rgba(97, 131, 252, .08); content: "\F06A9"; font: 190px/1 "Material Design Icons"; pointer-events: none; }
+.home .hero > * { position: relative; }
+.home .hero .kicker-script { display: block; margin-bottom: var(--space-2); color: var(--ww-orange); font: 400 32px/1 var(--font-script); }
+.home .hero h1 { max-width: 760px; margin: 0 auto var(--space-4); font-size: clamp(40px, 5vw, 64px); font-weight: 700; line-height: 1.08; }
+.home .hero p { max-width: 680px; margin: 0 auto; color: var(--text-secondary); font-size: 18px; font-weight: 300; line-height: 1.75; }
+.hero-action { display: inline-flex; min-height: 48px; align-items: center; gap: var(--space-2); margin-top: var(--space-7); padding: 10px 18px; border-radius: var(--radius-pill); background: var(--ww-blue); color: var(--ww-white); font: 600 14px/1 var(--font-body); text-decoration: none; box-shadow: 0 10px 22px rgba(97, 131, 252, .22); }
+.hero-action:hover { background: var(--ww-blue-700); color: var(--ww-white); }
+.hero-action i { font-size: 18px; }
+.course-path { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .9fr); gap: var(--space-10); max-width: none; margin-bottom: var(--section-y); padding: var(--space-8); border: 1px solid var(--hairline); border-radius: var(--radius-lg); background: var(--surface-card); box-shadow: var(--shadow-sm); }
+.course-path .eyebrow { margin: 0 0 var(--space-2); color: var(--ww-blue); font: 600 11px/1.4 var(--font-title); letter-spacing: .12em; text-transform: uppercase; }
+.course-path h2 { display: block; margin: 0 0 var(--space-4); font-size: clamp(26px, 3vw, 36px); line-height: 1.12; }
+.course-path-copy > p:last-child { max-width: 580px; margin: 0; color: var(--text-secondary); font-size: 16px; }
+.course-path-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.course-path-list li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: var(--space-3); align-items: center; padding: var(--space-3); border-radius: var(--radius); background: var(--surface-muted); color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+.course-path-list i { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--ww-blue-050); color: var(--ww-blue); font-size: 22px; }
+.course-path-list strong { display: block; margin-bottom: var(--space-1); color: var(--text-primary); font: 600 15px/1.3 var(--font-title); }
+.chapter-index { max-width: none; margin-bottom: 0; }
+.chapter-index + .chapter-index { margin-top: var(--section-y); }
+.chapter-index .index-title { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-5); color: var(--text-secondary); font: 600 12px/1.4 var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
+.chapter-index .index-title::before { display: inline-flex; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--ww-blue-050); color: var(--ww-blue); content: "\F04E9"; font: 20px/1 "Material Design Icons"; }
+.chapter-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+.chapter-card { display: block; min-height: 210px; padding: var(--space-6); border: 1px solid var(--hairline); border-radius: var(--radius); background: var(--surface-card); color: var(--text-primary); box-shadow: var(--shadow-sm); text-decoration: none; }
+.chapter-card:hover { border-color: rgba(97, 131, 252, .45); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.chapter-card .num { display: inline-flex; min-width: 44px; min-height: 32px; align-items: center; justify-content: center; margin-bottom: var(--space-5); padding: 4px 10px; border-radius: var(--radius-sm); background: var(--ww-blue-050); color: var(--ww-blue); font: 600 12px/1 var(--font-title); letter-spacing: .05em; }
+.chapter-card h3 { margin: 0 0 var(--space-2); font-size: 20px; font-weight: 600; line-height: 1.2; }
+.chapter-card p { margin: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.65; }
+.home .site-footer { margin-inline: auto; }
+
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; max-height: none; padding: var(--space-5); border-right: 0; border-bottom: 1px solid var(--hairline); }
+  .sidebar .brand-sub { margin-bottom: var(--space-4); }
+  .nav-toggle { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: space-between; margin-top: var(--space-3); padding: 8px 12px 8px 16px; border: 1px solid var(--hairline); border-radius: var(--radius-pill); background: var(--surface-card); color: var(--text-primary); font: 600 15px/1 var(--font-body); cursor: pointer; }
+  .nav-toggle i { display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--ww-blue-050); color: var(--ww-blue); font-size: 20px; transition: transform var(--motion); }
+  .sidebar.is-collapsible > h2 { display: none; }
+  .sidebar.is-collapsible.is-collapsed > ol, .sidebar.is-collapsible.is-collapsed > .toc-in-chapter { display: none; }
+  .sidebar.is-collapsible:not(.is-collapsed) .nav-toggle i { transform: rotate(180deg); }
+  .content { width: 100%; padding: 48px var(--space-5) 80px; }
+  .chapter-header { margin-bottom: var(--space-12); }
+  section { margin-bottom: var(--space-12); }
+  .home { padding: 48px var(--space-5) 80px; }
+  .home .hero { margin-bottom: var(--space-12); padding: 56px var(--space-6); }
+  .chapter-grid { gap: var(--space-4); }
+  .course-path { grid-template-columns: 1fr; gap: var(--space-6); padding: var(--space-6); }
+}
+@media (max-width: 560px) {
+  body { overflow-x: hidden; }
+  .content { padding-inline: var(--space-4); }
+  .chapter-header h1 { font-size: 36px; }
+  .chapter-header .lead, .home .hero p { font-size: 16px; }
+  section h2 { align-items: flex-start; font-size: 22px; }
+  section h2[data-icon]::before { width: 44px; height: 44px; flex-basis: 44px; font-size: 22px; }
+  .steps > li { padding: var(--space-5) var(--space-4) var(--space-5) 72px; }
+  .steps > li::before { top: var(--space-4); left: var(--space-4); }
+  .callout { padding: 68px var(--space-4) var(--space-4); }
+  .callout::before { top: var(--space-4); left: var(--space-4); }
+  .data-table { border-radius: var(--radius-sm); }
+  .data-table th, .data-table td { min-width: 150px; }
+  pre.code-block { padding: var(--space-4); border-radius: var(--radius-sm); font-size: 16px; }
+  .pager { grid-template-columns: 1fr; gap: var(--space-3); margin-top: var(--space-12); padding-top: var(--space-6); }
+  .pager a { min-height: 88px; }
+  .pager a.next { text-align: left; }
+  .home { padding-inline: var(--space-4); }
+  .home .hero { padding: 48px var(--space-5); }
+  .home .hero::before { top: -20px; right: -44px; font-size: 150px; }
+  .home .hero .kicker-script { font-size: 28px; }
+  .home .hero h1 { font-size: 40px; }
+  .course-path { padding: var(--space-5); }
+  .course-path-list li { grid-template-columns: 40px minmax(0, 1fr); }
+  .course-path-list i { width: 40px; height: 40px; }
+  .chapter-grid { grid-template-columns: 1fr; }
+  .chapter-card { min-height: 0; padding: var(--space-5); }
+}
+@media (max-width: 360px) {
+  .sidebar .brand { font-size: 17px; }
+  .sidebar .brand::before { width: 28px; height: 28px; font-size: 18px; vertical-align: -4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}

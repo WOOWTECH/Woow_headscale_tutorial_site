@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 12 章 · 排錯與維護 · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale 排錯教學：連線、節點離線、DERP、更新與備份。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch12_troubleshooting.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 12 章 · 排錯與維護 · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale 排錯教學：連線、節點離線、DERP、更新與備份。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch12_troubleshooting.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 12 章 · 排錯與維護 · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale 排錯教學：連線、節點離線、DERP、更新與備份。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html" class="active">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">分層觀念</a>
+      <a href="#steps">排錯步驟</a>
+      <a href="#cases">常見案例</a>
+      <a href="#update">更新與備份</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 12 章</div>
+      <h1>排錯與維護</h1>
+      <p class="lead">裝置連不上、節點離線、DERP 中繼、更新與備份，照順序分層排查。讀完這章，你不會靠「重開看看」碰運氣，而是有系統地找到問題並留下可交接的記錄。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">先找證據，別亂重啟</h2>
+      <p>網段出問題時，最常見的錯誤是「重開」「重裝」碰運氣，把線索洗掉。正確做法是先記錄現象、分層排查、找到證據再動手。</p>
+      <div class="callout"><strong>本章任務：</strong>學會分層排錯流程，處理連線、節點離線、DERP、更新與備份等常見問題。</div>
+    </section>
+
+    <section id="concept" data-nav="分層觀念">
+      <h2 data-icon="concept">從外到內分層排查</h2>
+      <table class="data-table">
+        <thead><tr><th>層</th><th>檢查什麼</th><th>常見訊號</th></tr></thead>
+        <tbody>
+          <tr><td>裝置與 client</td><td>tailscale client 狀態、網路</td><td>只有單一裝置有問題</td></tr>
+          <tr><td>控制層連線</td><td>裝置能否連到 Headscale</td><td>狀態顯示離線、無法登入</td></tr>
+          <tr><td>節點間連線</td><td>點對點是否建立、DERP 中繼</td><td>ping 不通、延遲高</td></tr>
+          <tr><td>控制層設定</td><td>ACL、路由、DNS、金鑰</td><td>改了 policy 後才出問題</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>先縮小範圍：</strong>問「只有這台，還是所有節點都這樣？」能立刻把問題定位到「裝置端」還是「控制層」。</div>
+    </section>
+
+    <section id="steps" data-nav="排錯步驟">
+      <h2 data-icon="steps">六步排錯流程</h2>
+      <ol class="steps">
+        <li><h3>記錄現象與時間</h3><p>記下「什麼時候、做什麼、看到什麼錯誤」。時間線是最好線索。</p></li>
+        <li><h3>確認範圍</h3><p>換台裝置或請別人試，判斷是單一裝置還是全網段問題。</p></li>
+        <li><h3>檢查 client 狀態</h3><p>在裝置跑 <code>tailscale status</code>，看節點是否在線、IP 是否正常。</p></li>
+        <li><h3>檢查控制層</h3><p>用 Headscale 命令查看節點清單、policy、路由，找第一個明確錯誤。</p></li>
+        <li><h3>做最小修正</h3><p>一次只改一個變數，改完驗證。不要一次動很多設定。</p></li>
+        <li><h3>留下記錄</h3><p>把「現象 → 判斷 → 動作 → 結果」記下來，方便日後交接或復發對照。</p></li>
+      </ol>
+    </section>
+
+    <section id="cases" data-nav="常見案例">
+      <h2 data-icon="compare">常見問題速查</h2>
+      <table class="data-table">
+        <thead><tr><th>現象</th><th>較可能原因</th><th>先做什麼</th></tr></thead>
+        <tbody>
+          <tr><td>裝置顯示離線</td><td>client 沒在跑、連不到控制層</td><td>重啟 client、檢查網路與控制層連線</td></tr>
+          <tr><td>ping 不通</td><td>ACL 擋、點對點失敗、節點離線</td><td>查 ACL、看是否走 DERP 中繼</td></tr>
+          <tr><td>延遲很高</td><td>點對點失敗、走 DERP 中繼</td><td>查兩端 NAT 與 DERP 設定</td></tr>
+          <tr><td>新裝置加不進來</td><td>preauth key 過期或失效</td><td>重新產生 key、檢查到期時間</td></tr>
+          <tr><td>改 policy 後連不上</td><td>ACL 規則寫錯或太嚴</td><td>檢查 policy 語法與規則</td></tr>
+          <tr><td>更新後出問題</td><td>版本不相容或設定變更</td><td>看 release notes、還原備份</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="update" data-nav="更新與備份">
+      <h2 data-icon="restore">更新與備份</h2>
+      <p><strong>更新</strong>：</p>
+      <ul>
+        <li>先看 release notes，注意跨版本破壞性變更。</li>
+        <li>先備份再更新，選離峰時間。</li>
+        <li>更新後逐一確認節點仍能連線、ACL/路由正常。</li>
+      </ul>
+      <p><strong>備份</strong>：自架控制層的命脈是「policy、preauth key、節點與金鑰」等設定。定期備份這些，才能在伺服器出事時重建網段。</p>
+      <div class="callout danger"><strong>沒備份不要更新：</strong>「更新後才發現壞掉」最痛。備份是更新的前提。</div>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">排錯常見問題</h2>
+      <details class="faq"><summary>問題復發怎麼避免？</summary><div class="body">把上次的「現象 → 判斷 → 動作 → 結果」記錄留下來，復發時對照，通常能快速定位。</div></details>
+      <details class="faq"><summary>可以自己重開控制層嗎？</summary><div class="body">看你有沒有伺服器權限。一般使用者沒有也不該亂重開；請管理員處理並先留現象記錄。</div></details>
+      <details class="faq"><summary>DERP 中繼是什麼、一定要嗎？</summary><div class="body">當兩台裝置無法點對點直連時，DERP 中繼幫它們轉發流量。能直連就不用；直連失敗時是保底。</div></details>
+      <details class="faq"><summary>如何回報問題給管理員？</summary><div class="body">附上「時間、做了什麼、錯誤訊息（遮敏感資訊）、影響範圍（只有我還是全部）」，越完整越好處理。</div></details>
+      <details class="faq"><summary>更新後介面或命令變了？</summary><div class="body">版本改版是常態。先看官方 release notes 與文件，本教學以撰寫當下版本為準，有出入以最新為準。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://github.com/juanfont/headscale/releases" rel="noopener">Headscale Releases</a></td><td>版本更新日誌與破壞性變更</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale 知識庫</a></td><td>client 端排錯與 DERP</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale/issues" rel="noopener">Headscale Issues</a></td><td>已知問題與社群解法</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch11_security.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">11 · 安全與最小暴露</span>
+      </a>
+      <a class="next" href="index.html">
+        <span class="label">回目錄 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">全套完成！</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

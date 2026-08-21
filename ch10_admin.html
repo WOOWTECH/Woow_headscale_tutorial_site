@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 10 章 · 管理員設定 · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale 管理員設定：policy、DERP、namespaces 與版本更新。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch10_admin.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 10 章 · 管理員設定 · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale 管理員設定：policy、DERP、namespaces 與版本更新。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch10_admin.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 10 章 · 管理員設定 · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale 管理員設定：policy、DERP、namespaces 與版本更新。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html" class="active">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">後台有哪些</a>
+      <a href="#steps">例行維護</a>
+      <a href="#derp">DERP 中繼</a>
+      <a href="#namespace">使用者與分群</a>
+      <a href="#backup">備份命脈</a>
+      <a href="#update">版本更新</a>
+      <a href="#troubleshoot">管理卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 10 章</div>
+      <h1>管理員設定</h1>
+      <p class="lead">認識 Headscale 的管理員設定：policy、DERP 中繼、使用者（namespace）與版本更新。讀完這章，管理員能維護整張私有網段、顧好備份，並安全地更新版本。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">這章是給管理員的</h2>
+      <p>Headscale 是整張私有網段的「大腦」。使用者的加入、誰能連誰、中繼伺服器、版本更新，都靠管理員維護。這章是給管理員（admin）的實務參考，一般使用者讀個概念就好。</p>
+      <div class="callout warn"><strong>管理動作影響整網：</strong>改 policy、動 DERP、更新版本，都會影響所有已連線的裝置。操作前先確認範圍，拿不準的不要亂改。</div>
+    </section>
+
+    <section id="concept" data-nav="後台有哪些">
+      <h2 data-icon="concept">管理員管哪些東西</h2>
+      <p>Headscale 的設定分幾塊，多數透過 <code>config.yaml</code> 與 CLI 管理：</p>
+      <table class="data-table">
+        <thead><tr><th>區塊</th><th>管什麼</th><th>常見動作</th></tr></thead>
+        <tbody>
+          <tr><td>policy（ACL）</td><td>誰能連誰、哪些 port 放行</td><td>查看、匯入、最小化存取</td></tr>
+          <tr><td>DERP</td><td>中繼伺服器清單</td><td>確認中繼可用、選用自架 DERP</td></tr>
+          <tr><td>使用者／namespace</td><td>裝置歸屬的分群</td><td>建立、列舉、管理</td></tr>
+          <tr><td>版本更新</td><td>Headscale 本體升級</td><td>看 release notes、備份後更新</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>CLI 是主要入口：</strong>Headscale 多數管理動作用 <code>headscale</code> 命令列完成；部分環境有 Web UI，但 CLI 最可靠、文件最齊。</div>
+    </section>
+
+    <section id="steps" data-nav="例行維護">
+      <h2 data-icon="steps">五步做一次例行維護</h2>
+      <ol class="steps">
+        <li><h3>列舉使用者與節點</h3><p>用 <code>headscale users list</code> 與 <code>headscale nodes list</code> 盤點目前有哪些帳號與裝置在網上。</p></li>
+        <li><h3>檢視 policy</h3><p>用 <code>headscale policy get</code> 查看目前的存取規則，確認沒有開太寬（第 7、11 章）。</p></li>
+        <li><h3>檢查金鑰</h3><p>用 <code>headscale preauthkeys list</code> 盤點尚未使用的金鑰，把用不到的撤銷。</p></li>
+        <li><h3>看服務狀態</h3><p>確認 Headscale 服務正常、DERP 中繼可達、log 沒有反覆錯誤。</p></li>
+        <li><h3>做備份</h3><p>把 <code>config.yaml</code>、policy、資料庫納入定期備份（本章後面詳述）。</p></li>
+      </ol>
+      <div class="callout warn"><strong>最小權限：</strong>管理員能改 policy、刪節點。管理員帳號不要到處給，能少就少。</div>
+    </section>
+
+    <section id="derp" data-nav="DERP 中繼">
+      <h2 data-icon="hardware">DERP 中繼伺服器</h2>
+      <p><strong>DERP</strong>（中繼協定）是當裝置間點對點直連失敗時的備援通道。正常情況下流量走點對點加密直連；連不通（例如對稱式 NAT、防火牆擋掉）時，才改走 DERP 中繼。</p>
+      <table class="data-table">
+        <thead><tr><th>DERP 來源</th><th>說明</th><th>注意</th></tr></thead>
+        <tbody>
+          <tr><td>內建 DERP</td><td>Headscale 可內嵌一個 DERP server</td><td>最省事，但單點、效能有限</td></tr>
+          <tr><td>外部 DERP 清單</td><td>設定檔指向一組公開 DERP</td><td>延展性好，但流量經第三方中繼</td></tr>
+          <tr><td>自架 DERP</td><td>自己跑 DERP server 並加入清單</td><td>掌控最好，但要額外維護</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>判斷原則：</strong>點對點能直連就用直連（快、不走中繼）；只有連不通才靠 DERP。中繼只是備援，不是常態路徑。</div>
+    </section>
+
+    <section id="namespace" data-nav="使用者與分群">
+      <h2 data-icon="compare">使用者（namespace）管理</h2>
+      <p>Headscale 用「使用者」（早期版本稱 <strong>namespace</strong>）把裝置分群。一個使用者名下可掛多個節點，policy 也能依使用者做區隔。新版把 namespace 更名為 user，概念相同。</p>
+      <ul>
+        <li>建立：<code>headscale users create 名稱</code></li>
+        <li>列舉：<code>headscale users list</code></li>
+        <li>用途：把「家人的裝置」和「工作裝置」分開管理，各自有獨立的金鑰與 policy 範圍。</li>
+      </ul>
+      <div class="callout warn"><strong>別混用舊名：</strong>不同版本指令名有變（namespace ↔ user），操作前先看你的版本對應文件，不要照舊教學硬打。</div>
+    </section>
+
+    <section id="backup" data-nav="備份命脈">
+      <h2 data-icon="restore">備份 policy、金鑰與設定</h2>
+      <p>Headscale 的「命脈」不是節點本身，而是這幾樣東西——重建整張網都靠它們：</p>
+      <ul>
+        <li><strong>config.yaml</strong>：伺服器設定（含 DERP、監聽、資料庫位置）。</li>
+        <li><strong>policy（ACL）</strong>：存取規則，是安全的核心。</li>
+        <li><strong>資料庫</strong>：使用者、節點、金鑰等狀態。</li>
+      </ul>
+      <div class="callout danger"><strong>備份要驗證：</strong>沒還原過的備份不算數。定期做一次還原演練，確認真的能把網段重建回來。</div>
+    </section>
+
+    <section id="update" data-nav="版本更新">
+      <h2 data-icon="advanced">版本更新</h2>
+      <ol class="steps">
+        <li><h3>先看 release notes</h3><p>更新前務必看官方 release notes，注意跨版本的破壞性變更（例如指令改名、設定檔格式變動）。</p></li>
+        <li><h3>先備份</h3><p>備份 config.yaml、policy、資料庫後再更新，這是前提。</p></li>
+        <li><h3>選離峰時間</h3><p>更新會短暫中斷控制層，選沒人用網的時段。</p></li>
+        <li><h3>更新後驗證</h3><p>更新後列舉節點、測試裝置間連線、確認 policy 生效。</p></li>
+      </ol>
+      <div class="callout warn"><strong>不跳版：</strong>不要從很舊的版本直接跳到最新，中間可能有多個不相容變更。照官方建議逐步升。</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="管理卡關">
+      <h2 data-icon="troubleshoot">管理常見卡關</h2>
+      <ol class="steps">
+        <li><h3>指令找不到或用法變了</h3><p>Headscale 指令隨版本演進（例如 namespace → user、acl → policy）。先看你的版本對應文件，別照舊教學硬打。</p></li>
+        <li><h3>裝置連不上 DERP</h3><p>確認 DERP 清單可達、防火牆有放行；可先看 log 找中繼失敗的線索。</p></li>
+        <li><h3>policy 改了沒生效</h3><p>確認 policy 有正確匯入／儲存，並重跑相關驗證；部分變更要等節點重新同步。</p></li>
+        <li><h3>更新後節點離線</h3><p>多半是設定或相容性變更，先看 release notes，再檢查 log 與節點狀態。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">管理常見問題</h2>
+      <details class="faq"><summary>一般使用者能動這些設定嗎？</summary><div class="body">不能。policy、DERP、使用者、版本更新都是管理員層級，一般使用者只管自己裝置連不連得上。</div></details>
+      <details class="faq"><summary>namespace 和 user 是同一個東西嗎？</summary><div class="body">概念相同，都是裝置分群。早期叫 namespace，新版本更名為 user，指令也跟著改，操作前看版本文件。</div></details>
+      <details class="faq"><summary>一定要自架 DERP 嗎？</summary><div class="body">不一定。多數情況用內建或外部 DERP 就夠；對掌控與隱私有更高要求才自架。</div></details>
+      <details class="faq"><summary>更新會讓裝置斷線嗎？</summary><div class="body">更新期間控制層會短暫中斷，已建立的點對點連線可能受影響。選離峰時段並先備份。</div></details>
+      <details class="faq"><summary>資料庫要單獨備份嗎？</summary><div class="body">要。使用者、節點、金鑰都存資料庫，單獨備份 config 是不夠的，兩者都要。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale 官網</a></td><td>設定、指令與版本說明</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>release notes、config 範例、issue</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/1232/derp-servers" rel="noopener">Tailscale：DERP servers</a></td><td>DERP 中繼的概念與原理</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch9_dns.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">09 · DNS 與 MagicDNS</span>
+      </a>
+      <a class="next" href="ch11_security.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">11 · 安全與最小暴露</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

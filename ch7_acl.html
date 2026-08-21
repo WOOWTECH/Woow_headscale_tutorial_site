@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 7 章 · ACL 存取控制 · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale ACL 教學：policy 規則、存取控制與最小暴露。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch7_acl.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 7 章 · ACL 存取控制 · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale ACL 教學：policy 規則、存取控制與最小暴露。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch7_acl.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 7 章 · ACL 存取控制 · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale ACL 教學：policy 規則、存取控制與最小暴露。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html" class="active">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">policy 是什麼</a>
+      <a href="#default-deny">預設全拒</a>
+      <a href="#steps">寫 ACL 步驟</a>
+      <a href="#groups">群組與標籤</a>
+      <a href="#troubleshoot">ACL 卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 7 章</div>
+      <h1>ACL 存取控制</h1>
+      <p class="lead">用 policy 檔決定「誰能連誰」。讀完這章，你會寫出預設全拒、只放行必要互連的 ACL，把私有網段守得滴水不漏。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">網段安全的最後一道閘</h2>
+      <p>裝置能加入網段，不代表它應該能連到每一台。ACL（Access Control List，存取控制清單）決定了節點之間的連線規則。預設該是「全部拒絕」，你只放行真正需要的互連，這就是最小暴露。</p>
+      <div class="callout"><strong>本章任務：</strong>看懂 policy 檔、寫出允許特定使用者互連的 ACL，並理解預設全拒的意義。</div>
+      <div class="callout danger"><strong>開太寬 = 沒防線：</strong>若 ACL 放行「全部連全部」，等於任何一台被攻破，整張網都淪陷。寧可先全拒，再一條條放行。</div>
+    </section>
+
+    <section id="concept" data-nav="policy 是什麼">
+      <h2 data-icon="concept">policy 檔與 hujson</h2>
+      <p>Headscale 的 ACL 寫在一份 <strong>policy 檔</strong>裡，格式是 <strong>hujson</strong>（Human JSON）：長得像 JSON，但允許註解（<code>//</code>）與尾端逗號，方便你邊寫邊加說明。</p>
+      <p>這份檔案在 Headscale 的設定檔（<code>config.yaml</code>）裡由 <code>policy.path</code> 指定，啟動時載入。改動後要重新載入（重啟服務或依部署方式）才會生效。</p>
+      <div class="callout tip"><strong>心智模型：</strong>policy 檔就是「網段的交通規則」——沒有明寫放行的，一律禁止通行。</div>
+    </section>
+
+    <section id="default-deny" data-nav="預設全拒">
+      <h2 data-icon="security">預設全拒，逐條放行</h2>
+      <p>一份最小、最安全的 policy 檔長這樣——只有結構，沒有任何放行規則，代表預設全拒：</p>
+      <pre class="code-block"><code>{
+  // 使用者群組（把多個 user 歸成一組）
+  "groups": {
+    "group:family": ["alice", "bob"],
+  },
+
+  // 存取控制：這裡沒寫 = 全部拒絕
+  "acls": [
+    // 之後才一條條加入你要放行的互連
+  ],
+}</code></pre>
+      <div class="callout warn"><strong>先求不開，再求方便：</strong>一開始就放空 <code>acls</code>，確保預設全拒。等需要某個互連時，再加那一條。</div>
+    </section>
+
+    <section id="steps" data-nav="寫 ACL 步驟">
+      <h2 data-icon="steps">六步寫出最小 ACL</h2>
+      <ol class="steps">
+        <li><h3>先盤點「誰要連誰」</h3><p>列出你真正需要的互連，例如「家人的裝置互相能連」「手機能連到家裡 NAS」。不需要的一律不放。</p></li>
+        <li><h3>把使用者分群組</h3><p>在 <code>groups</code> 裡把相關 user 歸成 <code>group:family</code> 之類的群組，之後用群組寫規則更清楚。</p></li>
+        <li><h3>寫第一條放行</h3><p>在 <code>acls</code> 加一條 <code>{ "action": "accept", "src": ["group:family"], "dst": ["group:family:*"] }</code>，允許群組內互連。</p></li>
+        <li><h3>逐步加需要的規則</h3><p>只加你盤點過的互連。每加一條都問：「這條真的需要嗎？」</p></li>
+        <li><h3>套用並重新載入</h3><p>把改好的 policy 檔放回 <code>policy.path</code> 指定位置，重啟 Headscale 服務（或依部署方式重載）讓它生效。</p></li>
+        <li><h3>驗證</h3><p>實際測一條該通的、測一條不該通的。該通的不通、或該拒的卻通，都是規則有問題。</p></li>
+      </ol>
+      <div class="callout warn"><strong>語法要精準：</strong>hujson 少了逗號、引號就整份不生效。改完用工具檢查格式，或用 Headscale 啟動時的 log 確認有無載入錯誤。</div>
+    </section>
+
+    <section id="groups" data-nav="群組與標籤">
+      <h2 data-icon="persons">群組（groups）與標籤（tags）</h2>
+      <p>寫 ACL 時有兩個好用的工具：</p>
+      <table class="data-table">
+        <thead><tr><th>工具</th><th>用途</th><th>例子</th></tr></thead>
+        <tbody>
+          <tr><td>群組 groups</td><td>把多個 user 歸一組，規則寫給整組</td><td><code>group:family</code></td></tr>
+          <tr><td>標籤 tags</td><td>給服務／裝置打標籤，規則寫給標籤</td><td><code>tag:server</code>、<code>tag:nas</code></td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>用群組和標籤，別寫死單一 user：</strong>之後加人、加裝置，只要把它歸進既有群組或標籤，ACL 不用大改。</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="ACL 卡關">
+      <h2 data-icon="troubleshoot">ACL 常見卡關</h2>
+      <ol class="steps">
+        <li><h3>改了 policy 沒生效</h3><p>確認有重新載入（重啟服務）；看啟動 log 有沒有 hujson 語法錯誤。</p></li>
+        <li><h3>該通的連不上</h3><p>檢查 src／dst 有沒有拼錯群組名或 user；群組名、標籤名要一致。</p></li>
+        <li><h3>該拒的卻通了</h3><p>可能前面有較寬的規則先匹配。ACL 是逐條判斷，把「全拒」放在底線、避免放行範圍過大。</p></li>
+        <li><h3>不確定某條該不該開</h3><p>預設不開。等真的有需求、也講得出理由，再開那一條。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">ACL 常見問題</h2>
+      <details class="faq"><summary>預設真的是全拒嗎？</summary><div class="body">對，policy 沒寫放行就預設拒絕。這是刻意設計，確保你不會不小心開太寬。</div></details>
+      <details class="faq"><summary>群組和單一 user 寫規則差在哪？</summary><div class="body">群組讓規則好維護：加人只要歸組，不用改 ACL。單一 user 適合特例。</div></details>
+      <details class="faq"><summary>ACL 會影響速度嗎？</summary><div class="body">不會。ACL 決定「能不能連」，實際流量仍走裝置間點對點加密，不經控制層轉發。</div></details>
+      <details class="faq"><summary>可以讓某台只出不進嗎？</summary><div class="body">可以，用 src／dst 的方向與 <code>*</code> 通配控制，例如只允許某裝置連出、不讓別人連它。</div></details>
+      <details class="faq"><summary>policy 檔要備份嗎？</summary><div class="body">要。它是網段規則的命脈，和 preauth key 一起納入備份，重建時才不會漏。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale 官網</a></td><td>policy 與 ACL 設定</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>policy 檔格式與變更</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/1018/acls/" rel="noopener">Tailscale：ACLs</a></td><td>hujson 與 ACL 語法概念對照</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch6_nodes.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">06 · 節點管理</span>
+      </a>
+      <a class="next" href="ch8_routes.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">08 · 路由與出口節點</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

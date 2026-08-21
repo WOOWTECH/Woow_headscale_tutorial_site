@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 9 章 · DNS 與 MagicDNS · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale DNS 教學：MagicDNS、名稱解析與自訂 DNS 設定。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch9_dns.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 9 章 · DNS 與 MagicDNS · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale DNS 教學：MagicDNS、名稱解析與自訂 DNS 設定。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch9_dns.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 9 章 · DNS 與 MagicDNS · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale DNS 教學：MagicDNS、名稱解析與自訂 DNS 設定。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html" class="active">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">MagicDNS 觀念</a>
+      <a href="#steps">使用步驟</a>
+      <a href="#custom">自訂 DNS</a>
+      <a href="#troubleshoot">DNS 卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 9 章</div>
+      <h1>DNS 與 MagicDNS</h1>
+      <p class="lead">用裝置名稱互相連線，而不是記 IP。讀完這章，你會了解 MagicDNS 怎麼把節點名稱解析成網段內 IP，以及如何設定自訂 DNS 與 split DNS。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">記名字比記 IP 好用</h2>
+      <p>網段裡裝置一多，記 IP 很不切實際。MagicDNS 讓你能用裝置名稱（如 <code>nas</code>、<code>客廳主機</code>）直接互連，跟打 IP 一樣，但好記得多。</p>
+      <div class="callout"><strong>本章任務：</strong>了解 MagicDNS 怎麼運作、怎麼用名稱互連，以及自訂 DNS 的用途。</div>
+    </section>
+
+    <section id="concept" data-nav="MagicDNS 觀念">
+      <h2 data-icon="concept">MagicDNS 是什麼</h2>
+      <p>MagicDNS 是控制層提供的「名稱解析」服務：它給每個節點一個好記的名稱，並把名稱解析成網段內的 IP。你 ping <code>nas</code> 就等於 ping 那台裝置。</p>
+      <table class="data-table">
+        <thead><tr><th>概念</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>節點名稱</td><td>每台裝置在網段裡的 hostname</td></tr>
+          <tr><td>MagicDNS</td><td>把名稱解析成 tailscale IP 的機制</td></tr>
+          <tr><td>split DNS</td><td>只把特定網域交給指定 DNS 伺服器解析</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>名稱要在控制層可見：</strong>節點名稱由 client 端設定，控制層記錄並供 MagicDNS 解析。</div>
+    </section>
+
+    <section id="steps" data-nav="使用步驟">
+      <h2 data-icon="steps">五步用起名稱互連</h2>
+      <ol class="steps">
+        <li><h3>確認 MagicDNS 有啟用</h3><p>在控制層的 DNS 設定確認 MagicDNS 開啟（Headscale 相關設定）。</p></li>
+        <li><h3>為裝置設好名稱</h3><p>每台裝置用清楚的 hostname（如 <code>nas</code>、<code>客廳</code>），別用難記的預設名。</p></li>
+        <li><h3>用名稱互連</h3><p>在另一台節點 <code>ping nas</code> 或 <code>ssh 客廳</code>，看名稱解析是否正確。</p></li>
+        <li><h3>需要時設 split DNS</h3><p>把公司內網或特定網域的解析導到指定 DNS 伺服器，其餘走預設。</p></li>
+        <li><h3>確認不衝突</h3><p>節點名稱不要跟內網既有 hostname 衝突，避免解析混淆。</p></li>
+      </ol>
+    </section>
+
+    <section id="custom" data-nav="自訂 DNS">
+      <h2 data-icon="network">自訂 DNS 與 split DNS</h2>
+      <ul>
+        <li><strong>自訂 DNS</strong>：指定網段內裝置使用的 DNS 伺服器（例如內網的 Pi-hole、AdGuard）。</li>
+        <li><strong>split DNS</strong>：只把「特定網域」交給指定伺服器解析，例如公司內網的 <code>internal.example.com</code>，其餘流量不受影響。</li>
+        <li><strong>用途</strong>：廣告阻擋、內網服務名稱解析、隔離不同網域的解析策略。</li>
+      </ul>
+      <div class="callout warn"><strong>改 DNS 影響所有節點：</strong>DNS 設定是控制層級的，改動會影響整個網段。先確認再改，並留下備份。</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="DNS 卡關">
+      <h2 data-icon="troubleshoot">DNS 常見卡關</h2>
+      <ol class="steps">
+        <li><h3>名稱解析不到</h3><p>確認 MagicDNS 啟用、節點名稱無衝突、對方節點在線。</p></li>
+        <li><h3>名稱解析到錯的裝置</h3><p>節點名稱重複或舊名稱未更新，檢查並重新命名。</p></li>
+        <li><h3>自訂 DNS 沒生效</h3><p>確認設定已套用並重新整理節點 DNS；部分變更需節點重新連線。</p></li>
+        <li><h3>內網服務名稱衝突</h3><p>節點名稱跟內網 hostname 撞名，改用不衝突的名稱或調整 split DNS。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">DNS 常見問題</h2>
+      <details class="faq"><summary>MagicDNS 是必須的嗎？</summary><div class="body">不是。可以只用 IP 互連。但名稱互連好用很多，建議開。</div></details>
+      <details class="faq"><summary>能用中文節點名稱嗎？</summary><div class="body">依 client 與控制層支援而定，多數環境可用，但為了相容性，建議用英數 hostname 較保險。</div></details>
+      <details class="faq"><summary>split DNS 和一般 DNS 差在哪？</summary><div class="body">一般 DNS 全用同一台；split DNS 只把特定網域分流到指定伺服器，其餘照舊。</div></details>
+      <details class="faq"><summary>能接 Pi-hole 擋廣告嗎？</summary><div class="body">能。把網段的自訂 DNS 指到 Pi-hole，所有節點的解析就都經過它擋廣告。</div></details>
+      <details class="faq"><summary>改了名稱舊的還會通嗎？</summary><div class="body">改名稱後舊名稱通常失效，用新名稱連；部分快取可能要稍等才更新。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://tailscale.com/kb/1081/magicdns" rel="noopener">Tailscale：MagicDNS</a></td><td>名稱解析機制</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>DNS 設定與實作</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch8_routes.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">08 · 路由與出口節點</span>
+      </a>
+      <a class="next" href="ch10_admin.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">10 · 管理員設定</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

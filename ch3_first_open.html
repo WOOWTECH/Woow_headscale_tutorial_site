@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 3 章 · 第一次開啟與登入 · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale 首次開啟：控制介面、CLI 與 API、管理員操作。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch3_first_open.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 3 章 · 第一次開啟與登入 · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale 首次開啟：控制介面、CLI 與 API、管理員操作。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch3_first_open.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 3 章 · 第一次開啟與登入 · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale 首次開啟：控制介面、CLI 與 API、管理員操作。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html" class="active">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">管理方式</a>
+      <a href="#steps">確認版本狀態</a>
+      <a href="#commands">基本命令</a>
+      <a href="#security">控制層不外露</a>
+      <a href="#troubleshoot">開啟卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 3 章</div>
+      <h1>第一次開啟與登入</h1>
+      <p class="lead">認識 Headscale 的管理方式——它主要以命令列（CLI）與 API 操作，部分環境才有 Web UI。讀完這章，你會確認版本與狀態、認得基本命令，並知道控制層為什麼不能對外亂開。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">控制層長得跟你想的不一樣</h2>
+      <p>前面幾套服務（相簿、雲端）都有漂亮的圖形介面；Headscale 不一樣，它是「後台型」服務，管理動作多半靠<strong>命令列（CLI）</strong>與<strong>API</strong>。先認清這件事，才不會一直找「設定按鈕」找不到。</p>
+      <div class="callout"><strong>本章任務：</strong>進入控制層的終端、確認版本與狀態、認得幾個基本命令。全程唯讀，不建立任何東西。</div>
+    </section>
+
+    <section id="concept" data-nav="管理方式">
+      <h2 data-icon="concept">三種管理方式</h2>
+      <table class="data-table">
+        <thead><tr><th>方式</th><th>長什麼樣</th><th>適合誰</th></tr></thead>
+        <tbody>
+          <tr><td>命令列（CLI）</td><td>在終端打 <code>headscale</code> 開頭的命令</td><td>主要管理方式，功能最完整</td></tr>
+          <tr><td>API</td><td>用程式／腳本呼叫 HTTP 介面</td><td>自動化與整合</td></tr>
+          <tr><td>Web UI（若有）</td><td>圖形介面</td><td>看狀態、部分部署才有</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>心態調整：</strong>把 Headscale 想成一台「要打指令的伺服器」，而不是「點來點去的 App」。命令熟了其實很快。</div>
+    </section>
+
+    <section id="steps" data-nav="確認版本狀態">
+      <h2 data-icon="steps">五步確認版本與狀態</h2>
+      <ol class="steps">
+        <li><h3>進入 add-on 終端</h3><p>在 Home Assistant 的 Headscale add-on 頁，找到「終端（Terminal）」入口（或透過 SSH 連進主機），進入命令列。</p></li>
+        <li><h3>確認版本</h3><p>輸入 <code>headscale version</code>，會顯示目前 Headscale 的版本號。</p></li>
+        <li><h3>看有哪些使用者</h3><p>輸入 <code>headscale users list</code>，列出目前的使用者（namespace）。全新安裝可能只有預設項。</p></li>
+        <li><h3>看有哪些節點</h3><p>輸入 <code>headscale nodes list</code>，列出已加入的節點。剛裝好通常還是空的。</p></li>
+        <li><h3>看日誌確認運作</h3><p>回 add-on 的「日誌（Log）」分頁，確認沒有反覆錯誤、服務持續運作。</p></li>
+      </ol>
+      <div class="callout warn"><strong>命令要在對的環境：</strong><code>headscale</code> 命令要在 add-on 的容器內或主機的 headscale 執行環境裡才有。打錯環境會出現「找不到指令」。</div>
+    </section>
+
+    <section id="commands" data-nav="基本命令">
+      <h2 data-icon="compare">基本命令速查</h2>
+      <table class="data-table">
+        <thead><tr><th>命令</th><th>做什麼</th><th>對應章節</th></tr></thead>
+        <tbody>
+          <tr><td><code>headscale version</code></td><td>顯示版本</td><td>本章</td></tr>
+          <tr><td><code>headscale users list</code></td><td>列出使用者</td><td>第 4 章</td></tr>
+          <tr><td><code>headscale users create</code></td><td>建立使用者</td><td>第 4 章</td></tr>
+          <tr><td><code>headscale preauthkeys list</code></td><td>列出預授權金鑰</td><td>第 4 章</td></tr>
+          <tr><td><code>headscale nodes list</code></td><td>列出節點</td><td>第 6 章</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>善用 --help：</strong>不確定某個命令怎麼用，打 <code>headscale &lt;子命令&gt; --help</code> 就有說明。養成先看 help 的習慣。</div>
+    </section>
+
+    <section id="security" data-nav="控制層不外露">
+      <h2 data-icon="security">控制層為什麼不能對外亂開</h2>
+      <p>控制層是整張網的「大腦」：節點清單、ACL、金鑰都在這。它一旦被外人碰到，你的私有網段就等於被接管。因此：</p>
+      <ul>
+        <li>管理介面（CLI／API／Web UI）只留給管理員，不對外公開。</li>
+        <li>client 要連的是「加入用的入口」，不是把整個管理介面暴露到公網。</li>
+        <li>需要對外時，走 Cloudflare Tunnel 這類加密通道，而不是直接開 port。</li>
+      </ul>
+      <div class="callout danger"><strong>停止線：</strong>不要為了「遠端方便」把 Headscale 管理介面直接公開到網際網路。遠端管理要走安全通道＋最小權限。</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="開啟卡關">
+      <h2 data-icon="troubleshoot">第一次開啟常見卡關</h2>
+      <ol class="steps">
+        <li><h3>找不到終端入口</h3><p>不同 add-on 提供的終端位置不同。找 add-on 頁的「Terminal／終端」，或問管理員怎麼進 CLI。</p></li>
+        <li><h3>打 headscale 說找不到指令</h3><p>你不在正確的執行環境。確認進入的是 add-on 容器終端，或 headscale 已裝在主機。</p></li>
+        <li><h3>命令回報權限不足</h3><p>部分操作需要足夠權限。用對的身分執行，或請管理員處理。</p></li>
+        <li><h3>沒有 Web UI 覺得不習慣</h3><p>Headscale 以 CLI/API 為主，Web UI 是選配。先習慣 CLI，後面章節都用命令。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">第一次開啟常見問題</h2>
+      <details class="faq"><summary>為什麼 Headscale 沒有漂亮介面？</summary><div class="body">它是「控制層」後台，重點是管節點與 policy，不是給日常操作。日常上網、連裝置靠 client 端（tailscale），不用整天看控制層。</div></details>
+      <details class="faq"><summary>一定要會打指令嗎？</summary><div class="body">做管理動作（建使用者、發金鑰）需要；日常使用（裝置互連）幾乎不用碰控制層。指令其實不多，照著打即可。</div></details>
+      <details class="faq"><summary>Web UI 是什麼？</summary><div class="body">有些部署會另外裝 headscale-ui 等圖形介面，用來「看」狀態較方便；但完整管理還是以 CLI/API 為主。</div></details>
+      <details class="faq"><summary>headscale version 顯示的版本重要嗎？</summary><div class="body">重要。排錯、查功能時要對版本；client 端也要能相容。版本不一致有時是問題來源。</div></details>
+      <details class="faq"><summary>我可以把控制層開給家人用嗎？</summary><div class="body">控制層只給管理員。家人用裝置加入網段即可（第 5 章），不需要碰到控制層。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale 官網</a></td><td>管理方式與命令文件</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>CLI 命令、版本與 issue</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale 知識庫</a></td><td>client 端操作與概念對照</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch2_install.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">02 · 安裝 Headscale</span>
+      </a>
+      <a class="next" href="ch4_user_preauth.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">04 · 使用者與 preauth key</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>

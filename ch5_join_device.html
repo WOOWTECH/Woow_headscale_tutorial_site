@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 5 章 · 加入第一個裝置 · Headscale 自架 VPN 控制層指南</title>
+  <meta name="description" content="Headscale 加入裝置：tailscale client 指向自架控制層、登入與驗證。" />
+  <meta name="author" content="woowtech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/ch5_join_device.html" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="第 5 章 · 加入第一個裝置 · Headscale 自架 VPN 控制層指南" />
+  <meta property="og:description" content="Headscale 加入裝置：tailscale client 指向自架控制層、登入與驗證。" />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/ch5_join_device.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="第 5 章 · 加入第一個裝置 · Headscale 自架 VPN 控制層指南" />
+  <meta name="twitter:description" content="Headscale 加入裝置：tailscale client 指向自架控制層、登入與驗證。" />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/screenshots/ch4/01_preauth_key.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;600&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="index.html">Headscale 指南</a>
+    <div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+    <h2>章節</h2>
+    <ol>
+      <li class="part-label">基礎：認識與安裝</li>
+      <li><a href="ch1_intro.html">開始前</a></li>
+      <li><a href="ch2_install.html">安裝</a></li>
+      <li><a href="ch3_first_open.html">第一次開啟</a></li>
+      <li><a href="ch4_user_preauth.html">使用者與金鑰</a></li>
+      <li class="part-label">建置：建立自己的網段</li>
+      <li><a href="ch5_join_device.html" class="active">加入裝置</a></li>
+      <li><a href="ch6_nodes.html">節點管理</a></li>
+      <li><a href="ch7_acl.html">ACL 存取控制</a></li>
+      <li><a href="ch8_routes.html">路由</a></li>
+      <li class="part-label">管理：維運與安全</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">管理員設定</a></li>
+      <li><a href="ch11_security.html">安全檢查</a></li>
+      <li><a href="ch12_troubleshooting.html">排錯維護</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>本章</h2>
+      <a href="#why">為什麼要學</a>
+      <a href="#concept">加入觀念</a>
+      <a href="#steps">加入步驟</a>
+      <a href="#os">作業系統差異</a>
+      <a href="#verify">驗證加入</a>
+      <a href="#troubleshoot">加入卡關</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">官方來源</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">第 5 章</div>
+      <h1>加入第一個裝置</h1>
+      <p class="lead">讓一台裝置的 tailscale client 指向你的 Headscale，並用它加入網段。讀完這章，你的第一台裝置會出現在節點清單裡，私有網段正式開張。</p>
+    </div>
+
+    <section id="why" data-nav="為什麼要學">
+      <h2 data-icon="why">網段要有裝置才算活起來</h2>
+      <p>第 4 章建好了 user 與 preauth key，但網段裡還沒有任何裝置。這章讓第一台裝置加入，驗證整條「控制層 → 金鑰 → client」的流程真的通了，之後每台裝置都照同樣做法。</p>
+      <div class="callout"><strong>本章任務：</strong>在裝置裝 tailscale client、指向 Headscale、用 key 加入，並確認節點出現在清單裡。</div>
+    </section>
+
+    <section id="concept" data-nav="加入觀念">
+      <h2 data-icon="concept">裝置怎麼加入網段</h2>
+      <p>裝置上的 tailscale client 預設連官方伺服器；要連你的 Headscale，得告訴它「控制層在哪」。做法是在 <code>tailscale up</code> 時加上 <code>--login-server</code> 指向你的 Headscale 網址。</p>
+      <table class="data-table">
+        <thead><tr><th>步驟</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>裝 client</td><td>在裝置安裝 tailscale（官方 client）</td></tr>
+          <tr><td>指向控制層</td><td><code>tailscale up --login-server &lt;網址&gt;</code></td></tr>
+          <tr><td>授權</td><td>貼上 preauth key，或走瀏覽器登入</td></tr>
+          <tr><td>驗證</td><td>在 Headscale 看節點出現</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>關鍵差異：</strong>官方 Tailscale 用 <code>tailscale up</code> 直接登官方；自架只要多補 <code>--login-server</code> 這一項，其餘體驗一樣。</div>
+    </section>
+
+    <section id="steps" data-nav="加入步驟">
+      <h2 data-icon="steps">六步加入第一台裝置</h2>
+      <ol class="steps">
+        <li><h3>在裝置裝 tailscale client</h3><p>到 Tailscale 官網下載對應作業系統的 client 並安裝（Windows、macOS、Linux、iOS、Android 皆有）。</p></li>
+        <li><h3>準備好 preauth key</h3><p>拿出第 4 章產生、還沒用掉的 preauth key。</p></li>
+        <li><h3>指向 Headscale 並登入</h3><p>在終端執行 <code>tailscale up --login-server &lt;Headscale 網址&gt;</code>，例如 <code>tailscale up --login-server https://你的網址</code>。</p></li>
+        <li><h3>用 key 授權</h3><p>依提示貼上 preauth key；或走瀏覽器授權流程登入。</p></li>
+        <li><h3>等待連線建立</h3><p>client 會連上控制層、取得節點身份，跑完 <code>tailscale up</code> 即完成。</p></li>
+        <li><h3>回 Headscale 驗證</h3><p>執行 <code>headscale nodes list</code>，看到新節點出現在清單，代表加入成功。</p></li>
+      </ol>
+      <div class="callout warn"><strong>網址要對：</strong><code>--login-server</code> 要填你的 Headscale 對外網址（含 https）。填錯會連去錯誤的控制層或直接失敗。</div>
+    </section>
+
+    <section id="os" data-nav="作業系統差異">
+      <h2 data-icon="compare">各作業系統的差異</h2>
+      <table class="data-table">
+        <thead><tr><th>平台</th><th>加入方式</th><th>注意</th></tr></thead>
+        <tbody>
+          <tr><td>Windows／macOS／Linux</td><td>終端 <code>tailscale up --login-server ...</code></td><td>Linux 常無頭部屬，適合用 preauth key</td></tr>
+          <tr><td>iOS／Android</td><td>App 內設定自訂控制層網址再登入</td><td>App 有「使用自訂伺服器」選項，填 Headscale 網址</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>server 常駐：</strong>Linux 上可用 <code>tailscale up</code> 後讓 client 常駐（依發行版用 systemd 等），之後開機自動連上。</div>
+    </section>
+
+    <section id="verify" data-nav="驗證加入">
+      <h2 data-icon="test">驗證加入成功</h2>
+      <ul>
+        <li>在裝置執行 <code>tailscale status</code>，應顯示已連線與分配的節點位址。</li>
+        <li>在 Headscale 執行 <code>headscale nodes list</code>，確認新節點與它隸屬的 user 正確。</li>
+        <li>加第二台裝置後，兩台之間應能互相 ping 通（第 6、7 章會講互連與 ACL）。</li>
+      </ul>
+    </section>
+
+    <section id="troubleshoot" data-nav="加入卡關">
+      <h2 data-icon="troubleshoot">加入常見卡關</h2>
+      <ol class="steps">
+        <li><h3>--login-server 連不上</h3><p>確認網址完整、含 https、對外可達；用瀏覽器開同網址測試（Headscale 控制層未必有網頁，但能確認 DNS 與憑證）。</p></li>
+        <li><h3>key 被拒</h3><p>key 可能過期、用過（一次性）、或綁錯 user。重新產生一把。</p></li>
+        <li><h3>client 已連過官方帳號</h3><p>先 <code>tailscale logout</code> 登出官方，再重新 <code>tailscale up --login-server ...</code>。</p></li>
+        <li><h3>nodes list 沒看到</h3><p>稍等幾秒讓 client 完成註冊；仍沒有就回裝置看 <code>tailscale status</code> 的錯誤訊息。</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">加入常見問題</h2>
+      <details class="faq"><summary>一定要用 preauth key 嗎？</summary><div class="body">不一定。也可以走互動式登入（瀏覽器授權）。preauth key 適合無頭裝置或自動化，互動登入適合有畫面的裝置。</div></details>
+      <details class="faq"><summary>一台裝置能同時連官方和 Headscale 嗎？</summary><div class="body">同一時間通常只連一個控制層。要切換就先 <code>tailscale logout</code> 再連另一個。</div></details>
+      <details class="faq"><summary>加入後裝置有固定位址嗎？</summary><div class="body">會分配一個網段內的位址，通常穩定但不保證永久不變。對外辨識用節點名稱較可靠。</div></details>
+      <details class="faq"><summary>手機 App 怎麼連自架？</summary><div class="body">App 登入頁通常有「自訂伺服器／use custom server」選項，填入你的 Headscale 網址即可。</div></details>
+      <details class="faq"><summary>加入後還沒互連？</summary><div class="body">預設 ACL 可能尚未放行互連，這是第 7 章要講的存取控制，先確認節點都已上線。</div></details>
+    </section>
+
+    <section id="sources" data-nav="官方來源">
+      <h2 data-icon="records">官方來源</h2>
+      <table class="data-table">
+        <thead><tr><th>來源</th><th>查證重點</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale 官網</a></td><td>client 連線與登入方式</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale GitHub</a></td><td>nodes 與登入流程</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale 知識庫</a></td><td>tailscale client 安裝與 up 命令</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch4_user_preauth.html">
+        <span class="label"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> 上一章</span>
+        <span class="title">04 · 使用者與 preauth key</span>
+      </a>
+      <a class="next" href="ch6_nodes.html">
+        <span class="label">下一章 <i class="mdi mdi-arrow-right" aria-hidden="true"></i></span>
+        <span class="title">06 · 節點管理</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">woowtech</a> 製作，以 <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant">CC BY 4.0</a> 授權釋出 — 可自由分享與改作，請保留出處。</p>
+      <p class="footer-meta">截圖取自 Home Assistant 與 Cloudflared Web GUI。Home Assistant 與 Cloudflare 為其各自權利人的商標，本站與其無隸屬關係。 · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">原始碼與勘誤</a></p>
+    </footer>
+  </main>
+</div>
+<script src="assets/js/toc.js"></script>
+</body>
+</html>
