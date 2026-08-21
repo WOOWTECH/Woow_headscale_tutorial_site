@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Headscale AI Agent Skill 手冊 · WoowTech</title>
+<meta name="description" content="Headscale/Tailscale 私有網段相關的 AI agent skill 型錄：精選實用 skill 與生態工具、安裝速查、SKILL.md 規格與安全守則（2026-08 調查）。" />
+<meta name="theme-color" content="#6183FC" />
+<link rel="canonical" href="https://headscale-guide.woowtech.io/skills.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Yellowtail&display=swap" />
+<style>
+:root{--blue:#6183FC;--blue7:#3F63E8;--blue5:#EEF2FF;--ink:#1B2033;--ink7:#3A4054;--ink5:#6B7186;--paper:#F7F8FC;--surface:#fff;--alt:#F1F3FA;--hair:#E2E5EF;--rs:12px;--pill:999px;}
+*{box-sizing:border-box}body{margin:0;font-family:Poppins,-apple-system,"Noto Sans TC",sans-serif;color:var(--ink);background:var(--paper);line-height:1.7}h1,h2,h3{font-family:Outfit,Poppins,"Noto Sans TC",sans-serif}a{color:var(--blue7);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--hair);padding:28px 22px;position:sticky;top:0;height:100vh;overflow:auto}
+.sidebar .brand{display:block;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px}.sidebar .brand-sub{font-size:13px;color:var(--ink5);margin-bottom:6px}.sidebar .hub-link{display:inline-block;font-size:12.5px;color:var(--ink5);margin-bottom:22px}.sidebar h2{font-size:12px;color:var(--ink5);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin:0 0 12px}.sidebar a.toc{display:block;padding:7px 12px;border-radius:8px;color:var(--ink7);font-size:13.5px}.sidebar a.toc:hover{background:var(--alt)}
+.content{padding:56px 64px 96px;max-width:900px}
+.kicker-script{font-family:Yellowtail,cursive;font-size:30px;color:var(--blue);display:block;margin-bottom:10px}.kicker{color:var(--blue);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}h1{font-size:38px;font-weight:700;margin:0 0 14px;line-height:1.25}.lead{font-size:17px;color:var(--ink7);margin:0 0 30px}
+section{margin-bottom:44px}section h2{font-size:22px;margin:0 0 16px;padding-left:14px;border-left:4px solid var(--blue)}
+.callout{padding:14px 18px;border-radius:var(--rs);background:var(--alt);border:1px solid var(--hair);margin:16px 0;font-size:14.5px}.callout.warn{background:#FEF3EE;border-color:rgba(230,109,62,.35)}.callout.danger{background:#FEEEEF;border-color:rgba(244,93,109,.35)}
+.skill{background:var(--surface);border:1px solid var(--hair);border-radius:var(--rs);padding:16px 18px;margin-bottom:14px}.skill h3{margin:0 0 4px;font-size:16px}.skill .meta{font-size:12.5px;color:var(--ink5);margin-bottom:8px}.skill p{margin:0;font-size:14px;color:var(--ink7)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--rs);overflow:hidden}th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--hair)}th{background:var(--blue5);font-weight:600}tr:last-child td{border-bottom:0}
+pre.code{background:#F7F8FC;border:1px solid var(--hair);border-radius:8px;padding:14px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;overflow-x:auto}
+footer{margin-top:40px;padding-top:24px;border-top:1px solid var(--hair);font-size:13px;color:var(--ink5)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.content{padding:32px 20px 64px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<a class="brand" href="tutorial.html">Headscale 指南</a>
+<div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+<a class="hub-link" href="index.html">◂ 資源總覽</a>
+<h2>本頁</h2>
+<a class="toc" href="#why">Skill 是什麼</a>
+<a class="toc" href="#install">怎麼裝</a>
+<a class="toc" href="#picks">精選 skill</a>
+<a class="toc" href="#tools">生態工具</a>
+<a class="toc" href="#compat">相容性須知</a>
+<a class="toc" href="#safety">安全守則</a>
+<a class="toc" href="#spec">SKILL.md 規格</a>
+<a class="toc" href="#faq">常見問題</a>
+</aside>
+<main class="content">
+<div class="chapter-header">
+<span class="kicker-script">teach your agent networking</span>
+<div class="kicker">WoowTech · Headscale Skill 手冊</div>
+<h1>讓 AI agent 會管你的私有網段</h1>
+<p class="lead">Skill 是教 AI agent 一項專門手藝的「說明書」。裝上網段管理相關的 skill，你的 agent 就會照最佳做法管節點、盤點金鑰、顧 ACL 與備份。這本收錄精選 skill、生態工具與安裝速查（2026-08 調查）。</p>
+</div>
+<section id="why" data-nav="why"><h2>Skill 是什麼，為什麼要裝</h2>
+<p>Skill 可以想成「給 AI 的 SOP 手冊」：一份 <code>SKILL.md</code> 寫明「遇到什麼任務、照什麼步驟、用什麼工具、注意什麼」。agent 讀到它就多會一件事，做法穩定、不會憑空亂猜。</p>
+<p>對 Headscale 來說，常見 skill 場景：節點盤點、preauth key 管理、ACL 稽核、備份與還原演練。裝了對應 skill，這些事你只要下指令，agent 就照 SOP 做。</p>
+</section>
+<section id="install" data-nav="install"><h2>怎麼裝（3 分鐘版）</h2>
+<div class="callout"><strong>前提：</strong>你的 agent 要支援 skill（例如 Pi Agent、Claude Code 等）。概念相同：把 skill 資料夾放進 skills 目錄。</div>
+<ul>
+<li>找到 skill 的 GitHub repo，記下網址。</li>
+<li>在 agent 的 skill 安裝面板貼上 repo 網址或選目錄。</li>
+<li>安裝後確認 skill 出現在可用清單（或系統提示裡）。</li>
+</ul>
+</section>
+<section id="picks" data-nav="picks"><h2>精選網段管理 skill（家庭視角）</h2>
+<p>依「自架 VPN 網段管理」會遇到的真實需求，整理值得一找的 skill 類型。星數以 GitHub 現況為準（2026-08），安裝前務必確認 repo 仍在維護。</p>
+<div class="skill"><h3>節點盤點</h3><div class="meta">分類：維運 · 觸發 headscale CLI</div><p>列出所有節點、標出離線與過期、產生健康報告，附乾跑模式。</p></div>
+<div class="skill"><h3>preauth key 稽核</h3><div class="meta">分類：安全 · headscale preauthkeys</div><p>盤點所有金鑰、標出未使用／快過期／該撤銷的，並可批次撤銷（先回報再動手）。</p></div>
+<div class="skill"><h3>ACL 最小化</h3><div class="meta">分類：安全 · policy</div><p>讀取 policy 檔、白話解釋、找出開太寬的規則、建議收緊並給出 diff。</p></div>
+<div class="skill"><h3>備份與還原演練</h3><div class="meta">分類：維運 · 設定檔</div><p>備份 policy、金鑰與設定，產出災難還原步驟。</p></div>
+<div class="skill"><h3>路由與 exit node 管理</h3><div class="meta">分類：管理 · routes</div><p>盤點 subnet route 與 exit node、標出未啟用的、協助啟用或收回。</p></div>
+<div class="callout warn"><strong>名稱與星數以 GitHub 現況為準：</strong>生態變化快，本頁列的「類型」是穩定需求，實際 repo 名稱與星數請安裝前重新查證。</div>
+</section>
+<section id="tools" data-nav="tools"><h2>生態工具（不只 skill）</h2>
+<table>
+<tr><th>工具</th><th>用途</th><th>何時用</th></tr>
+<tr><td><strong>juanfont/headscale</strong></td><td>官方控制層 repo</td><td>查文件、看更新、回報 issue</td></tr>
+<tr><td><strong>tailscale client</strong></td><td>裝置端連線軟體</td><td>各裝置加入網段（第 5 章）</td></tr>
+<tr><td><strong>headscale-ui</strong></td><td>第三方 Web 管理介面</td><td>想要圖形化管理時</td></tr>
+<tr><td><strong>prometheus 監控</strong></td><td>指標與告警</td><td>監控控制層健康</td></tr>
+<tr><td><strong>Home Assistant 整合</strong></td><td>把網段接進 HA</td><td>節點狀態、自動化觸發</td></tr>
+</table>
+</section>
+<section id="compat" data-nav="compat"><h2>相容性須知</h2>
+<ul>
+<li><strong>版本對齊：</strong>Headscale 與 tailscale client 版本要相容，大版本升級前看 release notes。</li>
+<li><strong>權限：</strong>多數操作需要能執行 headscale 命令的環境；agent 要能連到控制層。</li>
+<li><strong>client 端：</strong>裝置端 tailscale client 版本也要顧，太舊可能連不上新控制層。</li>
+</ul>
+</section>
+<section id="safety" data-nav="safety"><h2>安全守則</h2>
+<div class="callout danger"><strong>永不讓 skill 直接刪除：</strong>任何操作走「先回報 → 你確認 → 再執行」，刪除一律先「過期／停用」而非「刪除」。</div>
+<div class="callout warn"><strong>金鑰不外流：</strong>裝第三方 skill 前，檢查它會不會把 preauth key、node id 傳到外部。來路不明的不要裝。</div>
+<div class="callout"><strong>乾跑優先：</strong>批次操作先要求 skill 產出「將影響 N 個項目」的預覽，確認無誤才放行。</div>
+</section>
+<section id="spec" data-nav="spec"><h2>SKILL.md 規格速查</h2>
+<p>想自己寫一個 Headscale skill，核心就是一份 <code>SKILL.md</code>：</p>
+<pre class="code">---
+name: headscale-node-auditor
+description: 盤點 Headscale 節點與 preauth key、標出風險項，附乾跑模式
+---
+# 用途
+用 headscale 命令盤點節點與金鑰，找出離線、過期、該撤銷的項目。
+
+## 步驟
+1. 執行 headscale nodes list 與 preauthkeys list
+2. 標記風險項，產生「預覽清單」（影響 N 筆）
+3. 等使用者確認後才批次過期／撤銷
+4. 回報結果與例外
+
+## 安全
+- 永不直接刪除，先過期／停用
+- 批次操作前先回報影響範圍
+- 敏感值（key、node id）用佔位符</pre>
+<p>詳細規格請參考你使用的 agent 的 skill 文件。</p>
+</section>
+<section id="faq" data-nav="faq"><h2>常見問題</h2>
+<div class="callout"><strong>Skill 和 App／整合有什麼不同？</strong><br>App 是「有介面的程式」，整合是「兩個服務串接」，Skill 是「教 AI 怎麼做」的說明書，裝了讓 agent 自己會操作。</div>
+<div class="callout"><strong>裝錯 skill 會弄壞網段嗎？</strong><br>有可能。所以安全守則最重要：只裝可信來源、永遠先乾跑、先過期不直接刪、金鑰不外流。</div>
+<div class="callout"><strong>我能自己寫 skill 嗎？</strong><br>能。照上面的 SKILL.md 骨架，把「步驟」和「安全」寫清楚即可。</div>
+<div class="callout"><strong>哪個 skill 最值得先裝？</strong><br>「節點盤點」與「preauth key 稽核」最有感，能立刻掌握網段健康與金鑰風險。</div>
+</section>
+<footer>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> 製作，以 CC BY 4.0 授權釋出。Headscale 與 Tailscale 為其各自權利人的商標，本站與其無隸屬關係。</footer>
+</main>
+</div>
+</body>
+</html>
