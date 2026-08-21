@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Headscale CLI/API 提示詞庫 · WoowTech</title>
+<meta name="description" content="40+ 條「透過 headscale CLI/API 控制網段」的自然語言提示詞：user 與 preauth key 管理、節點盤點、ACL、路由、DNS、備份、排錯，每條可複製。" />
+<meta name="theme-color" content="#6183FC" />
+<link rel="canonical" href="https://headscale-guide.woowtech.io/prompts.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Yellowtail&display=swap" />
+<style>
+:root{--blue:#6183FC;--blue7:#3F63E8;--blue5:#EEF2FF;--ink:#1B2033;--ink7:#3A4054;--ink5:#6B7186;--paper:#F7F8FC;--surface:#fff;--alt:#F1F3FA;--hair:#E2E5EF;--rs:12px;--pill:999px;}
+*{box-sizing:border-box}body{margin:0;font-family:Poppins,-apple-system,"Noto Sans TC",sans-serif;color:var(--ink);background:var(--paper);line-height:1.7}h1,h2{font-family:Outfit,Poppins,"Noto Sans TC",sans-serif}a{color:var(--blue7);text-decoration:none}
+.layout{display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--hair);padding:28px 22px;position:sticky;top:0;height:100vh;overflow:auto}
+.sidebar .brand{display:block;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px}.sidebar .brand-sub{font-size:13px;color:var(--ink5);margin-bottom:6px}.sidebar .hub-link{display:inline-block;font-size:12.5px;color:var(--ink5);margin-bottom:22px}.sidebar h2{font-size:12px;color:var(--ink5);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin:0 0 12px}.sidebar a.toc{display:block;padding:7px 12px;border-radius:8px;color:var(--ink7);font-size:13.5px}.sidebar a.toc:hover{background:var(--alt)}
+.content{padding:56px 64px 96px;max-width:900px}
+.kicker-script{font-family:Yellowtail,cursive;font-size:30px;color:var(--blue);display:block;margin-bottom:10px}.kicker{color:var(--blue);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}h1{font-size:38px;font-weight:700;margin:0 0 14px;line-height:1.25}.lead{font-size:17px;color:var(--ink7);margin:0 0 30px}
+section{margin-bottom:44px}section h2{font-size:22px;margin:0 0 16px;padding-left:14px;border-left:4px solid var(--blue)}
+.callout{padding:14px 18px;border-radius:var(--rs);background:var(--alt);border:1px solid var(--hair);margin:16px 0;font-size:14.5px}
+.pc{background:var(--surface);border:1px solid var(--hair);border-radius:var(--rs);padding:16px 18px;margin-bottom:14px}.pc .lbl{font-size:12px;color:var(--blue7);font-weight:600;margin-bottom:6px}.pc pre{margin:0 0 10px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;white-space:pre-wrap;background:#F7F8FC;padding:12px;border-radius:8px}.copy{font-size:12.5px;font-weight:600;color:var(--blue7);background:var(--blue5);border:0;padding:6px 14px;border-radius:var(--pill);cursor:pointer}
+footer{margin-top:40px;padding-top:24px;border-top:1px solid var(--hair);font-size:13px;color:var(--ink5)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.content{padding:32px 20px 64px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<a class="brand" href="tutorial.html">Headscale 指南</a>
+<div class="brand-sub">自架的 Tailscale 控制伺服器</div>
+<a class="hub-link" href="index.html">◂ 資源總覽</a>
+<h2>本頁</h2>
+<a class="toc" href="#why">這本是什麼</a>
+<a class="toc" href="#howto">怎麼用</a>
+<a class="toc" href="#cat-user">user 與金鑰</a>
+<a class="toc" href="#cat-node">節點管理</a>
+<a class="toc" href="#cat-acl">ACL 與路由</a>
+<a class="toc" href="#cat-dns">DNS 與備份</a>
+<a class="toc" href="#cat-ops">排錯維運</a>
+<a class="toc" href="#faq">常見問題</a>
+</aside>
+<main class="content">
+<div class="chapter-header">
+<span class="kicker-script">talk to your network</span>
+<div class="kicker">WoowTech · Headscale CLI/API 提示詞庫</div>
+<h1>用一句話，指揮你的網段</h1>
+<p class="lead">透過 headscale CLI/API，把下面這些自然語言提示詞交給 AI agent，讓它幫你管 user、preauth key、節點、ACL、路由、DNS 與備份。每一條都能複製，改成你家的說法就能用。</p>
+</div>
+<section id="why" data-nav="why"><h2>這本是什麼</h2>
+<p>Headscale 用 <code>headscale</code> 命令列管理控制層：<code>users</code>、<code>preauthkeys</code>、<code>nodes</code>、<code>policy</code>、<code>routes</code>、<code>dns</code> 等子命令。把這些包成 agent 工具後，你就能用自然語言操作。這本是「你要對 agent 說的話」的範本庫。</p>
+<div class="callout"><strong>前提：</strong>需要 agent 能連到 Headscale（通常是執行 <code>headscale</code> 命令的環境）。敏感值（key、node id）用佔位符，別貼真實值。</div>
+</section>
+<section id="howto" data-nav="howto"><h2>怎麼用這些提示詞</h2>
+<p>複製 → 貼進 agent → 把佔位詞換成真實說法 → 送出。關鍵是講清楚「範圍」與「要做什麼」。</p>
+<div class="callout"><strong>安全習慣：</strong>任何「刪除、撤銷、改 ACL」類動作，都先要求 agent 回報「將影響 N 個項目」讓你確認再執行。</div>
+</section>
+<section id="cat-user" data-nav="cat-user"><h2>user 與 preauth key</h2>
+<div class="pc"><div class="lbl">建立 user</div><pre>用 headscale users create 幫我建立一個 user，名稱叫「family」，回傳建立結果。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">產生 preauth key</div><pre>幫 user「family」產生一個 preauth key，有效期 7 天、不可重複使用，回傳 key（用完提醒我撤銷）。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">列出所有 user</div><pre>用 headscale users list 列出所有 user 與建立時間。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">盤點未使用的 key</div><pre>列出所有 preauth key，標出還沒被使用、快到期或已過期的，建議我哪些該撤銷。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">撤銷 key</div><pre>把某個 preauth key 撤銷（先列出來讓我確認是哪一個，再執行）。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">刪除 user</div><pre>列出某個 user 名下的節點，確認沒有在用之後，再把它刪除（先回報影響範圍）。</pre><button class="copy">複製</button></div>
+</section>
+<section id="cat-node" data-nav="cat-node"><h2>節點管理</h2>
+<div class="pc"><div class="lbl">列出節點</div><pre>用 headscale nodes list 列出所有節點：名稱、IP、狀態、是否過期。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">找離線節點</div><pre>找出最近 7 天沒上線的節點，列出來讓我決定要不要過期處理。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">重新命名節點</div><pre>把某個節點重新命名成更好記的名字（先列出現有名稱讓我確認）。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">過期節點</div><pre>把某個不再使用的節點標記為過期，讓它離開網段（先確認節點資訊）。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">節點健康盤點</div><pre>盤點所有節點的狀態與 IP，標出有問題的（離線、過期、IP 異常）。</pre><button class="copy">複製</button></div>
+</section>
+<section id="cat-acl" data-nav="cat-acl"><h2>ACL 與路由</h2>
+<div class="pc"><div class="lbl">檢視 ACL</div><pre>讀取目前的 policy 檔，幫我白話解釋：現在哪些 user/群組能互連、哪些被擋。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">加一條放行規則</div><pre>在 policy 裡加一條 ACL：允許 user「family」的所有節點互相連線（先給我看修改前的 diff 確認）。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">ACL 最小化稽核</div><pre>檢查目前 ACL，找出「開太寬」的規則（例如 * 全放行），建議怎麼收緊。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">列出路由</div><pre>用 headscale routes list 列出所有 subnet route 與 exit node，標出還沒啟用的。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">啟用路由</div><pre>把某條 subnet route 啟用（先列出來讓我確認是哪一條）。</pre><button class="copy">複製</button></div>
+</section>
+<section id="cat-dns" data-nav="cat-dns"><h2>DNS 與備份</h2>
+<div class="pc"><div class="lbl">檢查 MagicDNS</div><pre>確認 MagicDNS 是否有啟用，列出目前的 DNS 相關設定。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">備份 policy 與金鑰</div><pre>把目前的 policy 檔與關鍵設定備份一份（回傳內容讓我存檔，別貼敏感值）。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">還原演練</div><pre>寫一份 Headscale 災難還原步驟：假設控制層掛了，怎麼從備份重建 user、節點與 policy。</pre><button class="copy">複製</button></div>
+</section>
+<section id="cat-ops" data-nav="cat-ops"><h2>排錯與維運</h2>
+<div class="pc"><div class="lbl">健康檢查</div><pre>做一次 Headscale 健康檢查：控制層狀態、版本、節點數、離線節點，逐項回報。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">檢查版本</div><pre>回報目前 Headscale 版本，並查官方是否有更新（若有，列出 release notes 重點）。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">排錯節點連不上</div><pre>某節點連不上控制層，幫我列排查清單：client 狀態、網路、控制層連線、key 是否有效。</pre><button class="copy">複製</button></div>
+<div class="pc"><div class="lbl">DERP 檢查</div><pre>確認 DERP 設定與中繼是否正常，節點直連失敗時能否走中繼。</pre><button class="copy">複製</button></div>
+</section>
+<section id="faq" data-nav="faq"><h2>常見問題</h2>
+<div class="callout"><strong>提示詞怎麼改才不會誤動網段？</strong><br>永遠加「範圍」與「先回報、再執行」。例如「先列出會影響的項目，等我確認再執行」。</div>
+<div class="callout"><strong>敏感值怎麼處理？</strong><br>preauth key、node id 用佔位符，別在對話貼真實值；需要貼時先遮罩。</div>
+<div class="callout"><strong>找不到某個命令？</strong><br><code>headscale --help</code> 或官方文件查子命令；不同版本略有差異，先讓 agent 查文件。</div>
+<div class="callout"><strong>能讓 agent 直接刪節點/user 嗎？</strong><br>建議先「過期／停用」而非「刪除」，並要求先回報影響範圍。</div>
+</section>
+<footer>《Headscale 自架 VPN 控制層指南》由 <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> 製作，以 CC BY 4.0 授權釋出。Headscale 與 Tailscale 為其各自權利人的商標，本站與其無隸屬關係。</footer>
+</main>
+</div>
+<script>
+document.querySelectorAll('.copy').forEach(function(b){b.addEventListener('click',function(){var t=b.parentElement.querySelector('pre').innerText;function d(){b.textContent='已複製';setTimeout(function(){b.textContent='複製';},1500)}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(d,fb)}else{fb()}function fb(){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);d()}})});
+</script>
+</body>
+</html>
