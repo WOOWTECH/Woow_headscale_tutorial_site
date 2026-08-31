@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 7 · ACL access control · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale ACL guide: policy rules, access control and minimal exposure." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch7_acl.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 7 · ACL access control · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale ACL guide: policy rules, access control and minimal exposure." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch7_acl.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 7 · ACL access control · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale ACL guide: policy rules, access control and minimal exposure." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch7_acl.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch7_acl.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html" class="active">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">What policy is</a>
+      <a href="#default-deny">Default deny</a>
+      <a href="#steps">ACL steps</a>
+      <a href="#groups">Groups and tags</a>
+      <a href="#troubleshoot">ACL problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 7</div>
+      <h1>ACL access control</h1>
+      <p class="lead">Use the policy file to decide "who can connect to whom". By the end of this chapter, you'll be able to write an ACL that denies everything by default, allows only the connections you actually need, and keeps your private tailnet watertight.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">The last gate on tailnet security</h2>
+      <p>A device being able to join the tailnet does not mean it should be able to reach every other device on it. An ACL (access control list) sets the rules for connections between nodes. The default should be "deny everything", and you allow only the connections you actually need. That is minimal exposure.</p>
+      <div class="callout"><strong>Chapter task:</strong> make sense of a policy file, write an ACL that lets specific users connect to each other, and understand what default deny is for.</div>
+      <div class="callout danger"><strong>Too wide = no defense:</strong> if your ACL allows "everything to everything", then the moment one machine is compromised the whole tailnet falls with it. Better to deny everything first, then allow one rule at a time.</div>
+    </section>
+
+    <section id="concept" data-nav="What policy is">
+      <h2 data-icon="concept">The policy file and hujson</h2>
+      <p>Headscale keeps its ACL in a <strong>policy file</strong>, written in <strong>hujson</strong> (Human JSON): it looks like JSON, but it allows comments (<code>//</code>) and trailing commas, so you can add notes as you write.</p>
+      <p>In the Headscale config file (<code>config.yaml</code>), <code>policy.path</code> points at this file, and it is loaded at startup. After you change it, it has to be reloaded (restart the service, or whatever your deployment method calls for) before the change takes effect.</p>
+      <div class="callout tip"><strong>Mental model:</strong> the policy file is "the traffic rules for your tailnet" — anything not explicitly allowed is denied.</div>
+    </section>
+
+    <section id="default-deny" data-nav="Default deny">
+      <h2 data-icon="security">Default deny, allow one rule at a time</h2>
+      <p>The smallest and safest policy file looks like this — structure only, no allow rules at all, which means everything is denied by default:</p>
+      <pre class="code-block"><code>{
+  // User groups (put several users in one group)
+  "groups": {
+    "group:family": ["alice", "bob"],
+  },
+
+  // Access control: nothing listed here = deny everything
+  "acls": [
+    // Add the connections you want to allow, one rule at a time
+  ],
+}</code></pre>
+      <div class="callout warn"><strong>Closed first, convenient second:</strong> leave <code>acls</code> empty at the start, so default deny is guaranteed. When you actually need a particular connection, add that one rule.</div>
+    </section>
+
+    <section id="steps" data-nav="ACL steps">
+      <h2 data-icon="steps">Six steps to write a minimal ACL</h2>
+      <ol class="steps">
+        <li><h3>Take inventory of "who needs to reach whom"</h3><p>List the connections you actually need, for example "the family's devices can reach each other" and "the phone can reach the NAS at home". Anything you do not need stays closed.</p></li>
+        <li><h3>Put your users into groups</h3><p>Inside <code>groups</code>, collect the related users into a group such as <code>group:family</code>. Writing the rules against a group after that is much clearer.</p></li>
+        <li><h3>Write the first allow rule</h3><p>Add one entry to <code>acls</code>: <code>{ "action": "accept", "src": ["group:family"], "dst": ["group:family:*"] }</code>. That lets the members of the group connect to each other.</p></li>
+        <li><h3>Add the rules you need, one at a time</h3><p>Only add the connections that were on your inventory. Each time you add one, ask: "Is this rule really necessary?"</p></li>
+        <li><h3>Apply and reload</h3><p>Put the edited policy file back at the location <code>policy.path</code> points to, then restart the Headscale service (or reload it the way your deployment does) so it takes effect.</p></li>
+        <li><h3>Verify</h3><p>Actually test one connection that should work and one that should not. If something that should connect cannot, or something that should be refused gets through, the rules are wrong.</p></li>
+      </ol>
+      <div class="callout warn"><strong>Syntax must be exact:</strong> one missing comma or quote and the whole hujson file stops working. After editing, check the format with a tool, or read the Headscale startup log to see whether it failed to load.</div>
+    </section>
+
+    <section id="groups" data-nav="Groups and tags">
+      <h2 data-icon="persons">Groups and tags</h2>
+      <p>Two tools make an ACL easier to write:</p>
+      <table class="data-table">
+        <thead><tr><th>Tool</th><th>What it is for</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Groups</td><td>Put several users in one group and write the rule for the whole group</td><td><code>group:family</code></td></tr>
+          <tr><td>Tags</td><td>Tag a service or a device and write the rule for the tag</td><td><code>tag:server</code>, <code>tag:nas</code></td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Use groups and tags, not hard-coded users:</strong> when you add a person or a device later, you only have to put it into an existing group or give it an existing tag, and the ACL barely changes.</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="ACL problems">
+      <h2 data-icon="troubleshoot">Common ACL pitfalls</h2>
+      <ol class="steps">
+        <li><h3>You changed the policy and nothing happened</h3><p>Confirm that it was reloaded (restart the service); check the startup log for a hujson syntax error.</p></li>
+        <li><h3>Something that should connect cannot</h3><p>Check whether the group name or the user in src/dst is misspelled; group names and tag names have to match exactly.</p></li>
+        <li><h3>Something that should be refused gets through</h3><p>A broader rule earlier in the file may have matched first. An ACL is evaluated one rule at a time, so keep "deny everything" as the baseline and avoid rules that allow too much.</p></li>
+        <li><h3>You are not sure whether to open a rule</h3><p>Leave it closed by default. Open that one rule when there is a real need and you can explain why.</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">ACL FAQ</h2>
+      <details class="faq"><summary>Is the default really deny everything?</summary><div class="body">Yes. If the policy does not allow a connection, it is denied. That is deliberate: it makes sure you never open things too wide by accident.</div></details>
+      <details class="faq"><summary>What is the difference between writing a rule for a group and for a single user?</summary><div class="body">Groups keep the rules maintainable: to add a person you only put them in the group, without touching the ACL. A single user fits a special case.</div></details>
+      <details class="faq"><summary>Does an ACL affect speed?</summary><div class="body">No. The ACL decides "whether a connection is allowed"; the traffic itself still runs peer-to-peer and encrypted between the devices, and is not relayed through the control server.</div></details>
+      <details class="faq"><summary>Can I let one machine connect out but not in?</summary><div class="body">Yes. Use the direction of src/dst together with the <code>*</code> wildcard, for example allowing one device to connect out while nobody else is allowed to connect to it.</div></details>
+      <details class="faq"><summary>Should I back up the policy file?</summary><div class="body">Yes. It holds the rules for your tailnet and is one of the things you cannot lose. Back it up together with your preauth keys, so nothing is missing when you rebuild.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale website</a></td><td>Policy and ACL configuration</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>Policy file format and changes</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/1018/acls/" rel="noopener">Tailscale: ACLs</a></td><td>hujson and ACL syntax concept mapping</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch6_nodes.html">
+        <span class="label">← Previous</span>
+        <span class="title">06 · Node management</span>
+      </a>
+      <a class="next" href="ch8_routes.html">
+        <span class="label">Next →</span>
+        <span class="title">08 · Routes and exit nodes</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>

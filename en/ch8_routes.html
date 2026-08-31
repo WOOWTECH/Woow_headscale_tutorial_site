@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 8 · Routes and exit nodes · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale routing guide: subnet router, exit node and local network forwarding." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch8_routes.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 8 · Routes and exit nodes · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale routing guide: subnet router, exit node and local network forwarding." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch8_routes.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 8 · Routes and exit nodes · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale routing guide: subnet router, exit node and local network forwarding." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch8_routes.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch8_routes.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html" class="active">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">Two route types</a>
+      <a href="#steps">Setup steps</a>
+      <a href="#exit">Exit node</a>
+      <a href="#troubleshoot">Routing problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 8</div>
+      <h1>Routes and exit nodes</h1>
+      <p class="lead">Use a subnet router to bring a whole local network into your private tailnet, and an exit node to push traffic out through one particular device. By the end of this chapter, you'll be able to reach your whole home network safely from any network outside the house — the NAS, the printer and everything else on it.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">More than devices: bring a whole subnet home</h2>
+      <p>The earlier chapters connected "a single device" at a time. But a home usually has a whole local network behind it (NAS, printer, cameras, router), and those devices cannot always run Tailscale. With a <strong>subnet router</strong>, you nominate one device as the "bridge" and bring that entire local network into your private tailnet.</p>
+      <div class="callout"><strong>Chapter task:</strong> Learn the difference between a subnet router and an exit node, and learn how to advertise and approve routes. Route settings affect the whole tailnet, so confirm the blast radius before you touch anything.</div>
+    </section>
+
+    <section id="concept" data-nav="Two route types">
+      <h2 data-icon="concept">Subnet router and exit node</h2>
+      <table class="data-table">
+        <thead><tr><th>Concept</th><th>What it does</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td><strong>subnet router</strong></td><td>Attaches one local subnet (192.168.1.0/24, for example) to the tailnet so other nodes can reach the devices on it</td><td>Reaching the NAS or the printer at home while you are out</td></tr>
+          <tr><td><strong>exit node</strong></td><td>Sends "all outbound traffic" from other nodes out through this one machine</td><td>Browsing from a cafe with your home IP address, encrypting outbound connections</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Not the same thing:</strong> a subnet router "brings the local network in"; an exit node "sends traffic out". Do not mix the two up.</div>
+    </section>
+
+    <section id="steps" data-nav="Setup steps">
+      <h2 data-icon="steps">Six steps to set up a subnet router</h2>
+      <ol class="steps">
+        <li><h3>Pick a device that is always on to be the bridge</h3><p>Choose a device at home that stays powered on all the time (your Home Assistant host or a NAS, for example) to act as the subnet router.</p></li>
+        <li><h3>Advertise the subnet you want to forward</h3><p>On that device, run <code>tailscale up --advertise-routes=192.168.1.0/24</code> (replace it with your own subnet).</p></li>
+        <li><h3>Approve the route on the control server</h3><p>Use Headscale's route command to list this subnet route and approve it. Until you do, it will not take effect.</p></li>
+        <li><h3>Test the local network from another device</h3><p>From another node, ping a device on the local network (<code>ping 192.168.1.10</code>, for example) and confirm the traffic gets through.</p></li>
+        <li><h3>Set up an exit node if you need one</h3><p>Add <code>--advertise-exit-node</code> on the bridge device, then tell the other nodes to use it as their exit.</p></li>
+        <li><h3>Take inventory and keep it minimal</h3><p>Advertise only the subnets you genuinely need. Do not open up a whole large subnet.</p></li>
+      </ol>
+      <div class="callout danger"><strong>Minimal exposure:</strong> the wider the subnet you advertise, the more things can be reached. Open only the small range you need (the subnet the NAS sits on, for example), not the entire local network.</div>
+    </section>
+
+    <section id="exit" data-nav="Exit node">
+      <h2 data-icon="remote">Exit node</h2>
+      <p>An exit node makes your device send "all outbound traffic" out through one particular node. That is useful when you are "away from home and want to browse with your home IP address", or when you want to "encrypt outbound connections on public Wi-Fi".</p>
+      <ul>
+        <li>Once it is set up, every other node has to "select it manually" as its exit node before anything changes.</li>
+        <li>Note that all traffic goes through it, so the bandwidth and the location of that machine affect your speed.</li>
+        <li>If you use it as a way to "tunnel back home", be sure to follow the local terms of service.</li>
+      </ul>
+      <div class="callout warn"><strong>An exit node is not a magic proxy:</strong> it only moves your exit point somewhere else. It does not change the basic rules of content encryption or privacy.</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="Routing problems">
+      <h2 data-icon="troubleshoot">Common routing pitfalls</h2>
+      <ol class="steps">
+        <li><h3>The route is advertised but the local network is unreachable</h3><p>Check that the control server has "approved" the route (advertising is not approving), and check that you typed the subnet correctly.</p></li>
+        <li><h3>You can ping the router but not the local network behind it</h3><p>Check whether IP forwarding is turned on for the router machine. The setting differs from one OS to another.</p></li>
+        <li><h3>The exit node has no effect</h3><p>Every other node has to "select it manually" as its exit node. Confirm that this machine advertises itself as an exit node and that the control server has accepted it.</p></li>
+        <li><h3>Devices on the local network never answer</h3><p>The firewall or the default gateway on those devices may be blocking traffic coming from the tailnet. Check the routing on the local network.</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">Routing FAQ</h2>
+      <details class="faq"><summary>Does the subnet router machine have to stay powered on?</summary><div class="body">Yes. It is the bridge; switch it off and the link goes down. Pick a stable device that is always on.</div></details>
+      <details class="faq"><summary>Can I advertise more than one subnet at a time?</summary><div class="body">Yes, separate the subnets in <code>--advertise-routes</code> with commas. But keep it minimal and open only what you need.</div></details>
+      <details class="faq"><summary>Is an exit node the same as a VPN?</summary><div class="body">The effect is similar, in that it "moves your exit point somewhere else", but it is one part of the Tailscale/Headscale mesh, not a traditional centralized VPN.</div></details>
+      <details class="faq"><summary>Is advertising a route a security risk?</summary><div class="body">Yes, it exposes that subnet to every other node in the tailnet. Always pair it with an ACL that limits who can connect, and advertise the smallest subnet that works.</div></details>
+      <details class="faq"><summary>Can a phone be a subnet router?</summary><div class="body">In theory yes, but it is not a good idea (phones sleep often, and IP forwarding support is limited). A device that is always on is more reliable.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://tailscale.com/kb/1019/subnets" rel="noopener">Tailscale: subnet router</a></td><td>Subnet routing concepts and setup</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/1103/exit-nodes" rel="noopener">Tailscale: exit node</a></td><td>What exit nodes are for and how to set them up</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>Route commands and how they are implemented</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch7_acl.html">
+        <span class="label">← Previous</span>
+        <span class="title">07 · ACL access control</span>
+      </a>
+      <a class="next" href="ch9_dns.html">
+        <span class="label">Next →</span>
+        <span class="title">09 · DNS and MagicDNS</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>

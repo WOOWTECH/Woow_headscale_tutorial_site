@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 6 · Node management · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale node management: list, rename, expire and remove devices." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch6_nodes.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 6 · Node management · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale node management: list, rename, expire and remove devices." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch6_nodes.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 6 · Node management · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale node management: list, rename, expire and remove devices." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch6_nodes.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch6_nodes.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html" class="active">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">What a node is</a>
+      <a href="#steps">Management steps</a>
+      <a href="#status">Status and expiry</a>
+      <a href="#expire">Expire and reauth</a>
+      <a href="#troubleshoot">Node problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 6</div>
+      <h1>Node management</h1>
+      <p class="lead">Learn how to list, rename, expire and remove the nodes in your tailnet. By the end of this chapter, you'll know the status of every device in Headscale, when to expire a node, when to remove one, and how to keep the tailnet in good order.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">Nodes are the tailnet's roster</h2>
+      <p>Every device that joins becomes a "node" in Headscale. After a while you may not remember which devices are still on the network and which ones should be retired. Node management lets you see the roster clearly, control who is still on it, and decide who should be removed.</p>
+      <div class="callout"><strong>Chapter task:</strong> list your nodes, read their status, give them names, and expire or remove the ones you no longer use. Removing a node only affects that device's connection; the other members are unaffected.</div>
+      <div class="callout warn"><strong>Remove with care:</strong> once a node is removed, that device can no longer connect to the tailnet, and rejoining takes a new preauth key (Chapters 4 and 5). Make sure you really are done with it before you act.</div>
+    </section>
+
+    <section id="concept" data-nav="What a node is">
+      <h2 data-icon="concept">Nodes, status and identity</h2>
+      <p>Headscale describes each node with a few fields:</p>
+      <table class="data-table">
+        <thead><tr><th>Field</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td>ID</td><td>The node's unique number (used by most CLI commands)</td></tr>
+          <tr><td>Name</td><td>The device name. You can rename it yourself to make it easier to recognize</td></tr>
+          <tr><td>IP address</td><td>The node's private IP address inside the tailnet</td></tr>
+          <tr><td>Last seen</td><td>When the device was last online, so you can tell whether it is still active</td></tr>
+          <tr><td>Expired</td><td>Whether it has expired (after expiry the device has to reauthenticate before it can connect)</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Node IDs are sensitive:</strong> when you share a screen or ask for help, redact the node ID and the IP address instead of pasting the whole block.</div>
+    </section>
+
+    <section id="steps" data-nav="Management steps">
+      <h2 data-icon="steps">Six steps through one round of node management</h2>
+      <ol class="steps">
+        <li><h3>List every node</h3><p>Run <code>headscale nodes list</code> to see every node in the tailnet, with its ID, name, IP address and status.</p></li>
+        <li><h3>Identify each device</h3><p>Compare the name against "Last seen" to tell the devices apart. If two names look too similar, rename them first (the next step).</p></li>
+        <li><h3>Rename a node</h3><p>Run <code>headscale nodes rename --identifier &lt;ID&gt; &lt;new-name&gt;</code> to change the name to something you will recognize, for example "living-room-tv".</p></li>
+        <li><h3>Check status and expiry</h3><p>Confirm which nodes are Expired and which are still online. Expired means the device has to reauthenticate.</p></li>
+        <li><h3>Expire the nodes you no longer use</h3><p>Run <code>headscale nodes expire --identifier &lt;ID&gt;</code> to expire a node. It loses its connection and has to log in again.</p></li>
+        <li><h3>Remove the nodes you are sure you no longer want</h3><p>Run <code>headscale nodes delete --identifier &lt;ID&gt;</code> to remove one. Check once more before you do.</p></li>
+      </ol>
+      <div class="callout warn"><strong>Commands vary by version:</strong> the Headscale CLI flags (<code>--identifier</code>, or the ID on its own) shift slightly from version to version. Go by <code>headscale nodes --help</code> in your own environment.</div>
+    </section>
+
+    <section id="status" data-nav="Status and expiry">
+      <h2 data-icon="compare">How to read status and expiry</h2>
+      <p>A node shows up in a few main states: "online", "offline" and "expired". Once you understand them, you know when to step in:</p>
+      <table class="data-table">
+        <thead><tr><th>Status</th><th>What it means</th><th>What to do</th></tr></thead>
+        <tbody>
+          <tr><td>Online (seen recently)</td><td>The device is working normally and checked in a moment ago</td><td>Nothing to do</td></tr>
+          <tr><td>Offline for a while</td><td>The device is powered off or temporarily offline</td><td>Watch it for now; there is no rush to remove it</td></tr>
+          <tr><td>Expired</td><td>The device has to reauthenticate before it can connect</td><td>Have the device log in again, or just remove it</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>Expiry is not a failure:</strong> expiry is a safety mechanism. A device that has gone unused for a long time, or that may have been stolen, is disconnected automatically until it reauthenticates.</div>
+    </section>
+
+    <section id="expire" data-nav="Expire and reauth">
+      <h2 data-icon="restore">Expiry and reauthentication</h2>
+      <p>When you "expire" a node, that device is kicked out of the tailnet. To bring it back, log in and authenticate again on the device itself (Chapter 5). This fits when:</p>
+      <ul>
+        <li>You suspect the device was stolen, or you no longer trust it.</li>
+        <li>You want to disable a device for now and bring it back later.</li>
+        <li>You want to force a device through the authentication flow one more time.</li>
+      </ul>
+      <div class="callout warn"><strong>Expire ≠ remove:</strong> expiring only disconnects it and lets it reauthenticate; removing deletes the node from the roster, and rejoining takes a new preauth key.</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="Node problems">
+      <h2 data-icon="troubleshoot">Common node pitfalls</h2>
+      <ol class="steps">
+        <li><h3>A node stays offline</h3><p>First check that the device is powered on and the Tailscale client is running. Once the device side looks fine, go back and check the control server (Chapter 12).</p></li>
+        <li><h3>The new name has not taken effect</h3><p>Names take a moment to sync. Refresh the list, or run <code>nodes list</code> and look again.</p></li>
+        <li><h3>You deleted a node by mistake</h3><p>Rejoining needs a new preauth key. Get into the habit of double-checking before you remove anything.</p></li>
+        <li><h3>The command is missing, or the flags are different</h3><p>Flags change between Headscale versions. Run <code>headscale nodes --help</code> first to see the form your version supports.</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">Nodes FAQ</h2>
+      <details class="faq"><summary>Is one node the same as one device?</summary><div class="body">Usually one device is one node. Reinstalling the client on the same device can create a new node, so remember to clear the old one out.</div></details>
+      <details class="faq"><summary>Does a node's IP address change?</summary><div class="body">Tailnet IP addresses are usually stable, but they can change when a device rejoins. Identifying a device by name is more reliable than remembering its IP address.</div></details>
+      <details class="faq"><summary>Does an expired device come back on its own?</summary><div class="body">It does not recover automatically. You have to log in and authenticate again on the device before it returns to the tailnet.</div></details>
+      <details class="faq"><summary>Does removing a node affect anyone else?</summary><div class="body">No. Removing only affects that device; the other nodes keep talking to each other as before.</div></details>
+      <details class="faq"><summary>Can I remove many nodes at once?</summary><div class="body">You can remove them one at a time. When you are not sure, "expire" rather than "remove", so you leave yourself room to recover.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale website</a></td><td>CLI commands and node management</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>Versions, CLI flags and changes</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale knowledge base</a></td><td>Concept mapping for nodes and status</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch5_join_device.html">
+        <span class="label">← Previous</span>
+        <span class="title">05 · Join your first device</span>
+      </a>
+      <a class="next" href="ch7_acl.html">
+        <span class="label">Next →</span>
+        <span class="title">07 · ACL access control</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>

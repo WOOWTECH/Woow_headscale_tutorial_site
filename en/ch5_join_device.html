@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 5 · Join your first device · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale, join a device: point the Tailscale client at your self-hosted control server, log in and verify." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch5_join_device.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 5 · Join your first device · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale, join a device: point the Tailscale client at your self-hosted control server, log in and verify." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch5_join_device.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 5 · Join your first device · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale, join a device: point the Tailscale client at your self-hosted control server, log in and verify." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch5_join_device.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch5_join_device.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html" class="active">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">How joining works</a>
+      <a href="#steps">Join steps</a>
+      <a href="#os">By OS</a>
+      <a href="#verify">Verify the join</a>
+      <a href="#troubleshoot">Join problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 5</div>
+      <h1>Join your first device</h1>
+      <p class="lead">Point one device's Tailscale client at your Headscale and use it to join the tailnet. By the end of this chapter, your first device will show up in the node list and your private tailnet is officially open.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">A tailnet is not alive until a device joins</h2>
+      <p>Chapter 4 created a user and a preauth key, but there is still no device in the tailnet. Here you join the first device and prove that the whole "control server → key → client" flow really works; every device after this one follows the same path.</p>
+      <div class="callout"><strong>Chapter task:</strong> install the Tailscale client on a device, point it at Headscale, join with a key, and confirm the node appears in the list.</div>
+    </section>
+
+    <section id="concept" data-nav="How joining works">
+      <h2 data-icon="concept">How a device joins the tailnet</h2>
+      <p>By default the Tailscale client on a device connects to the official servers; to reach your Headscale, you have to tell it "where the control server is". The way to do that is to run <code>tailscale up</code> with <code>--login-server</code> pointing at your Headscale URL.</p>
+      <table class="data-table">
+        <thead><tr><th>Step</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td>Install the client</td><td>Install Tailscale (the official client) on the device</td></tr>
+          <tr><td>Point it at the control server</td><td><code>tailscale up --login-server &lt;url&gt;</code></td></tr>
+          <tr><td>Authorize</td><td>Paste the preauth key, or log in through the browser</td></tr>
+          <tr><td>Verify</td><td>See the node appear in Headscale</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>The key difference:</strong> with official Tailscale, <code>tailscale up</code> logs you straight into the official service; self-hosting just adds <code>--login-server</code> on top, and everything else feels the same.</div>
+    </section>
+
+    <section id="steps" data-nav="Join steps">
+      <h2 data-icon="steps">Six steps to join your first device</h2>
+      <ol class="steps">
+        <li><h3>Install the Tailscale client on the device</h3><p>Go to the Tailscale website, download the client for your operating system, and install it (clients are available for Windows, macOS, Linux, iOS and Android).</p></li>
+        <li><h3>Have the preauth key ready</h3><p>Get the preauth key you generated in Chapter 4 and have not used yet.</p></li>
+        <li><h3>Point it at Headscale and log in</h3><p>In a terminal, run <code>tailscale up --login-server &lt;headscale-url&gt;</code> — for example <code>tailscale up --login-server https://your-headscale.example</code>.</p></li>
+        <li><h3>Authorize with the key</h3><p>Paste the preauth key when you are prompted, or log in through the browser authorization flow.</p></li>
+        <li><h3>Wait for the connection to come up</h3><p>The client connects to the control server and picks up its node identity; once <code>tailscale up</code> has finished, you are done.</p></li>
+        <li><h3>Verify back on Headscale</h3><p>Run <code>headscale nodes list</code>. Seeing the new node in the list means it joined successfully.</p></li>
+      </ol>
+      <div class="callout warn"><strong>Get the URL right:</strong> <code>--login-server</code> takes your Headscale's public URL (including https). Get it wrong and you will reach the wrong control server, or the command will simply fail.</div>
+    </section>
+
+    <section id="os" data-nav="By OS">
+      <h2 data-icon="compare">Differences by operating system</h2>
+      <table class="data-table">
+        <thead><tr><th>Platform</th><th>How to join</th><th>Watch out</th></tr></thead>
+        <tbody>
+          <tr><td>Windows / macOS / Linux</td><td>In a terminal, <code>tailscale up --login-server ...</code></td><td>Linux is often deployed headless, which suits a preauth key</td></tr>
+          <tr><td>iOS / Android</td><td>Set the custom control server URL inside the app, then log in</td><td>The app has a "Use custom server" option; put your Headscale URL there</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Run it as a service:</strong> on Linux you can run <code>tailscale up</code> and then leave the client running as a service (with systemd or whatever your distribution uses), so it connects automatically at boot.</div>
+    </section>
+
+    <section id="verify" data-nav="Verify the join">
+      <h2 data-icon="test">Verify the device joined</h2>
+      <ul>
+        <li>Run <code>tailscale status</code> on the device; it should show that you are connected and the node address it was assigned.</li>
+        <li>Run <code>headscale nodes list</code> on Headscale and confirm that the new node, and the user it belongs to, are both right.</li>
+        <li>Once you add a second device, the two should be able to ping each other (Chapters 6 and 7 cover connectivity between nodes and the ACL).</li>
+      </ul>
+    </section>
+
+    <section id="troubleshoot" data-nav="Join problems">
+      <h2 data-icon="troubleshoot">Common join pitfalls</h2>
+      <ol class="steps">
+        <li><h3>--login-server will not connect</h3><p>Check that the URL is complete, includes https, and is reachable from outside; open the same URL in a browser to test (a Headscale control server does not necessarily serve a web page, but this confirms DNS and the certificate).</p></li>
+        <li><h3>The key is rejected</h3><p>The key may have expired, may already have been used (single-use), or may be bound to the wrong user. Generate a new one.</p></li>
+        <li><h3>The client has already logged into an official account</h3><p>Run <code>tailscale logout</code> to log out of the official service first, then run <code>tailscale up --login-server ...</code> again.</p></li>
+        <li><h3>The node does not show up in nodes list</h3><p>Wait a few seconds for the client to finish registering; if it is still missing, go back to the device and read the error message from <code>tailscale status</code>.</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">Joining FAQ</h2>
+      <details class="faq"><summary>Do I have to use a preauth key?</summary><div class="body">Not necessarily. You can also use the interactive login (browser authorization). A preauth key suits headless devices and automation; the interactive login suits devices with a screen.</div></details>
+      <details class="faq"><summary>Can one device connect to the official service and to Headscale at the same time?</summary><div class="body">At any one moment it normally connects to a single control server. To switch, run <code>tailscale logout</code> first, then connect to the other one.</div></details>
+      <details class="faq"><summary>Does a device get a fixed address after it joins?</summary><div class="body">It is assigned a tailnet IP address, which is usually stable but is not guaranteed to stay the same forever. For identifying a device to others, the node name is more reliable.</div></details>
+      <details class="faq"><summary>How does the phone app connect to a self-hosted server?</summary><div class="body">The app's login screen usually has a "Use custom server" option; enter your Headscale URL there and you are done.</div></details>
+      <details class="faq"><summary>Joined, but they still cannot reach each other?</summary><div class="body">The default ACL may not allow that traffic yet; that is the access control Chapter 7 covers. First confirm that every node is online.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale website</a></td><td>How the client connects and logs in</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>Nodes and the login flow</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale knowledge base</a></td><td>Installing the Tailscale client and the up command</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch4_user_preauth.html">
+        <span class="label">← Previous</span>
+        <span class="title">04 · Users and preauth keys</span>
+      </a>
+      <a class="next" href="ch6_nodes.html">
+        <span class="label">Next →</span>
+        <span class="title">06 · Node management</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>
