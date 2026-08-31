@@ -1,18 +1,20 @@
 # 靜態站台 image — 只放實際要對外提供的檔案。
-# 建置流程用的檔案（scripts/、chapters.json、README）一律不進 image，
+# 建置流程用的檔案（scripts/、chapters.json、i18n/、README）一律不進 image，
 # 避免內部資訊隨站台一起上線。另見 .dockerignore。
 FROM nginx:alpine
 
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 
-# 內容頁與目錄
-COPY index.html 404.html ./
-COPY ch1_login.html ch2_system_settings.html ch3_floors_areas.html \
-     ch4_naming_labels.html ch5_users.html ch6_dashboard.html \
-     ch7_notifications.html ch8_first_automation.html ch9_backups.html \
-     ch10_scripts.html ch11_devices.html ch12_domains.html ./
-COPY appendix_hacs_addons.html appendix_scenes_helpers_groups.html ./
+# 內容頁與目錄（zh-TW，repo 根目錄）
+COPY index.html tutorial.html 404.html ./
+COPY ch1_intro.html ch2_install.html ch3_first_open.html ch4_user_preauth.html \
+     ch5_join_device.html ch6_nodes.html ch7_acl.html ch8_routes.html \
+     ch9_dns.html ch10_admin.html ch11_security.html ch12_troubleshooting.html ./
+COPY sales.html prompts.html skills.html ./
+
+# 其他語系的 site root（同檔名鏡像；chapters.json 由 .dockerignore 排除）
+COPY en ./en
 
 # 靜態資源與 SEO / 授權檔
 COPY assets ./assets

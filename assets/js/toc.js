@@ -1,6 +1,12 @@
 // Progressive enhancement for the chapter sidebar:
 // mobile disclosure navigation, current-section state, and smooth in-page links.
 (function () {
+  // UI 字串：其他語系的頁面由 generator 內嵌 <script id="ui-strings">；沒有就用 zh-TW 預設。
+  let ui = { tocToggle: '目錄', tocExpand: '展開章節與本章目錄', tocCollapse: '收合章節與本章目錄' };
+  const uiEl = document.getElementById('ui-strings');
+  if (uiEl) {
+    try { ui = Object.assign(ui, JSON.parse(uiEl.textContent)); } catch (e) { /* 保持預設 */ }
+  }
   const sidebar = document.querySelector('.sidebar');
   const mobileQuery = window.matchMedia('(max-width: 960px)');
 
@@ -10,8 +16,8 @@
     toggle.type = 'button';
     toggle.className = 'nav-toggle';
     toggle.setAttribute('aria-expanded', 'false');
-    toggle.setAttribute('aria-label', '展開章節與本章目錄');
-    toggle.innerHTML = '<span>目錄</span><i class="mdi mdi-chevron-down" aria-hidden="true"></i>';
+    toggle.setAttribute('aria-label', ui.tocExpand);
+    toggle.innerHTML = '<span>' + ui.tocToggle + '</span><i class="mdi mdi-chevron-down" aria-hidden="true"></i>';
 
     const firstHeading = sidebar.querySelector('h2');
     if (firstHeading) sidebar.insertBefore(toggle, firstHeading);
@@ -19,7 +25,7 @@
     const setCollapsed = (collapsed) => {
       sidebar.classList.toggle('is-collapsed', collapsed);
       toggle.setAttribute('aria-expanded', String(!collapsed));
-      toggle.setAttribute('aria-label', collapsed ? '展開章節與本章目錄' : '收合章節與本章目錄');
+      toggle.setAttribute('aria-label', collapsed ? ui.tocExpand : ui.tocCollapse);
     };
 
     const applyMode = () => {
