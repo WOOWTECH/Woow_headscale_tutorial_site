@@ -1,0 +1,221 @@
+{
+  "_readme": "code 區塊的例外清單：只有列在這裡的 <pre>/<code>/<kbd> 才允許與 zh 不同（通常是程式碼裡的中文註解或中文佔位值）。zh 那邊改了就會對不上而紅燈。由 scripts/apply_code_translations.js 維護。",
+  "allow": [
+    {
+      "file": "ch10_admin.html",
+      "unit": "#namespace",
+      "zh": "<code>headscale users create 名稱</code>",
+      "en": "<code>headscale users create &lt;name&gt;</code>"
+    },
+    {
+      "file": "ch3_first_open.html",
+      "unit": "#commands",
+      "zh": "<code>headscale &lt;子命令&gt; --help</code>",
+      "en": "<code>headscale &lt;subcommand&gt; --help</code>"
+    },
+    {
+      "file": "ch4_user_preauth.html",
+      "unit": "#steps",
+      "zh": "<code>headscale users create &lt;名稱&gt;</code>",
+      "en": "<code>headscale users create &lt;name&gt;</code>"
+    },
+    {
+      "file": "ch4_user_preauth.html",
+      "unit": "#manage",
+      "zh": "<code>headscale users destroy &lt;名稱&gt;</code>",
+      "en": "<code>headscale users destroy &lt;name&gt;</code>"
+    },
+    {
+      "file": "ch5_join_device.html",
+      "unit": "#concept",
+      "zh": "<code>tailscale up --login-server &lt;網址&gt;</code>",
+      "en": "<code>tailscale up --login-server &lt;url&gt;</code>"
+    },
+    {
+      "file": "ch5_join_device.html",
+      "unit": "#steps",
+      "zh": "<code>tailscale up --login-server &lt;Headscale 網址&gt;</code>",
+      "en": "<code>tailscale up --login-server &lt;headscale-url&gt;</code>"
+    },
+    {
+      "file": "ch5_join_device.html",
+      "unit": "#steps",
+      "zh": "<code>tailscale up --login-server https://你的網址</code>",
+      "en": "<code>tailscale up --login-server https://your-headscale.example</code>"
+    },
+    {
+      "file": "ch6_nodes.html",
+      "unit": "#steps",
+      "zh": "<code>headscale nodes rename --identifier &lt;ID&gt; 新名稱</code>",
+      "en": "<code>headscale nodes rename --identifier &lt;ID&gt; &lt;new-name&gt;</code>"
+    },
+    {
+      "file": "ch7_acl.html",
+      "unit": "#default-deny",
+      "zh": "<pre class=\"code-block\"><code>{\n  // 使用者群組（把多個 user 歸成一組）\n  \"groups\": {\n    \"group:family\": [\"alice\", \"bob\"],\n  },\n\n  // 存取控制：這裡沒寫 = 全部拒絕\n  \"acls\": [\n    // 之後才一條條加入你要放行的互連\n  ],\n}</code></pre>",
+      "en": "<pre class=\"code-block\"><code>{\n  // User groups (put several users in one group)\n  \"groups\": {\n    \"group:family\": [\"alice\", \"bob\"],\n  },\n\n  // Access control: nothing listed here = deny everything\n  \"acls\": [\n    // Add the connections you want to allow, one rule at a time\n  ],\n}</code></pre>"
+    },
+    {
+      "file": "ch9_dns.html",
+      "unit": "#why",
+      "zh": "<code>客廳主機</code>",
+      "en": "<code>living-room</code>"
+    },
+    {
+      "file": "ch9_dns.html",
+      "unit": "#steps",
+      "zh": "<code>客廳</code>",
+      "en": "<code>living-room</code>"
+    },
+    {
+      "file": "ch9_dns.html",
+      "unit": "#steps",
+      "zh": "<code>ssh 客廳</code>",
+      "en": "<code>ssh living-room</code>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-user",
+      "zh": "<pre>用 headscale users create 幫我建立一個 user，名稱叫「family」，回傳建立結果。</pre>",
+      "en": "<pre>Use headscale users create to create a user named \"family\", and report the result. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-user",
+      "zh": "<pre>幫 user「family」產生一個 preauth key，有效期 7 天、不可重複使用，回傳 key（用完提醒我撤銷）。</pre>",
+      "en": "<pre>Generate a preauth key for the user \"family\", valid for 7 days and not reusable, and return the key (remind me to revoke it once it has been used). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-user",
+      "zh": "<pre>用 headscale users list 列出所有 user 與建立時間。</pre>",
+      "en": "<pre>Use headscale users list to list every user and its creation time. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-user",
+      "zh": "<pre>列出所有 preauth key，標出還沒被使用、快到期或已過期的，建議我哪些該撤銷。</pre>",
+      "en": "<pre>List every preauth key, flag the ones that are still unused, expiring soon or already expired, and tell me which ones I should revoke. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-user",
+      "zh": "<pre>把某個 preauth key 撤銷（先列出來讓我確認是哪一個，再執行）。</pre>",
+      "en": "<pre>Revoke one preauth key (list them first so I can confirm which one, then run it). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-user",
+      "zh": "<pre>列出某個 user 名下的節點，確認沒有在用之後，再把它刪除（先回報影響範圍）。</pre>",
+      "en": "<pre>List the nodes that belong to one user, confirm none of them is still in use, then delete the user (report the blast radius first). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-node",
+      "zh": "<pre>用 headscale nodes list 列出所有節點：名稱、IP、狀態、是否過期。</pre>",
+      "en": "<pre>Use headscale nodes list to list every node: name, IP address, status, whether it has expired. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-node",
+      "zh": "<pre>找出最近 7 天沒上線的節點，列出來讓我決定要不要過期處理。</pre>",
+      "en": "<pre>Find the nodes that have not come online in the last 7 days and list them, so I can decide whether to expire them. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-node",
+      "zh": "<pre>把某個節點重新命名成更好記的名字（先列出現有名稱讓我確認）。</pre>",
+      "en": "<pre>Rename one node to something easier to remember (list the current names first so I can confirm). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-node",
+      "zh": "<pre>把某個不再使用的節點標記為過期，讓它離開網段（先確認節點資訊）。</pre>",
+      "en": "<pre>Mark one node that is no longer in use as expired so it leaves the tailnet (confirm the node details first). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-node",
+      "zh": "<pre>盤點所有節點的狀態與 IP，標出有問題的（離線、過期、IP 異常）。</pre>",
+      "en": "<pre>Take inventory of every node's status and IP address, and flag the ones with a problem (offline, expired, unexpected IP address). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-acl",
+      "zh": "<pre>讀取目前的 policy 檔，幫我白話解釋：現在哪些 user/群組能互連、哪些被擋。</pre>",
+      "en": "<pre>Read the current policy file and explain it to me in plain language: which users and groups can connect to each other right now, and which are blocked. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-acl",
+      "zh": "<pre>在 policy 裡加一條 ACL：允許 user「family」的所有節點互相連線（先給我看修改前的 diff 確認）。</pre>",
+      "en": "<pre>Add one ACL rule to the policy: allow every node of the user \"family\" to connect to the others (show me the diff before the change so I can confirm). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-acl",
+      "zh": "<pre>檢查目前 ACL，找出「開太寬」的規則（例如 * 全放行），建議怎麼收緊。</pre>",
+      "en": "<pre>Check the current ACL, find the rules that are too wide (a * that allows everything, for example), and suggest how to tighten them. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-acl",
+      "zh": "<pre>用 headscale routes list 列出所有 subnet route 與 exit node，標出還沒啟用的。</pre>",
+      "en": "<pre>Use headscale routes list to list every subnet route and exit node, and flag the ones that are not approved yet. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-acl",
+      "zh": "<pre>把某條 subnet route 啟用（先列出來讓我確認是哪一條）。</pre>",
+      "en": "<pre>Approve one subnet route (list them first so I can confirm which one). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-dns",
+      "zh": "<pre>確認 MagicDNS 是否有啟用，列出目前的 DNS 相關設定。</pre>",
+      "en": "<pre>Confirm whether MagicDNS is enabled, and list the current DNS settings. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-dns",
+      "zh": "<pre>把目前的 policy 檔與關鍵設定備份一份（回傳內容讓我存檔，別貼敏感值）。</pre>",
+      "en": "<pre>Back up the current policy file and the critical settings (return the contents so I can save them, and do not paste sensitive values). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-dns",
+      "zh": "<pre>寫一份 Headscale 災難還原步驟：假設控制層掛了，怎麼從備份重建 user、節點與 policy。</pre>",
+      "en": "<pre>Write a Headscale disaster recovery procedure: assume the control server is down, and describe how to rebuild users, nodes and the policy from a backup. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-ops",
+      "zh": "<pre>做一次 Headscale 健康檢查：控制層狀態、版本、節點數、離線節點，逐項回報。</pre>",
+      "en": "<pre>Run a Headscale health check: control server status, version, node count, offline nodes. Report each item in turn. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-ops",
+      "zh": "<pre>回報目前 Headscale 版本，並查官方是否有更新（若有，列出 release notes 重點）。</pre>",
+      "en": "<pre>Report the current Headscale version and check whether an official update exists (if there is one, list the key points from the release notes). Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-ops",
+      "zh": "<pre>某節點連不上控制層，幫我列排查清單：client 狀態、網路、控制層連線、key 是否有效。</pre>",
+      "en": "<pre>A node cannot reach the control server. Give me a troubleshooting checklist: client status, network, the connection to the control server, whether the key is still valid. Answer in English.</pre>"
+    },
+    {
+      "file": "prompts.html",
+      "unit": "#cat-ops",
+      "zh": "<pre>確認 DERP 設定與中繼是否正常，節點直連失敗時能否走中繼。</pre>",
+      "en": "<pre>Confirm that the DERP settings and relays are healthy, and that traffic can fall back to a DERP relay when nodes cannot connect directly. Answer in English.</pre>"
+    },
+    {
+      "file": "skills.html",
+      "unit": "#spec",
+      "zh": "<pre class=\"code\">---\nname: headscale-node-auditor\ndescription: 盤點 Headscale 節點與 preauth key、標出風險項，附乾跑模式\n---\n# 用途\n用 headscale 命令盤點節點與金鑰，找出離線、過期、該撤銷的項目。\n\n## 步驟\n1. 執行 headscale nodes list 與 preauthkeys list\n2. 標記風險項，產生「預覽清單」（影響 N 筆）\n3. 等使用者確認後才批次過期／撤銷\n4. 回報結果與例外\n\n## 安全\n- 永不直接刪除，先過期／停用\n- 批次操作前先回報影響範圍\n- 敏感值（key、node id）用佔位符</pre>",
+      "en": "<pre class=\"code\">---\nname: headscale-node-auditor\ndescription: Take inventory of Headscale nodes and preauth keys and flag the risky ones, with a dry-run mode\n---\n# Purpose\nUse the headscale command to take inventory of nodes and keys, and find the items that are offline, expired or due to be revoked.\n\n## Steps\n1. Run headscale nodes list and preauthkeys list\n2. Flag the risky items and produce a \"preview list\" (N items affected)\n3. Wait for the user to confirm before expiring / revoking in bulk\n4. Report the results and any exceptions\n\n## Safety\n- Never delete outright; expire / disable first\n- Report the blast radius before any bulk operation\n- Use placeholders for sensitive values (key, node id)</pre>"
+    }
+  ]
+}
