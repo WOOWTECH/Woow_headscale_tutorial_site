@@ -7,7 +7,7 @@
  *
  * 產生／覆寫：
  *   - 每頁的 <head>（<title>、description、canonical、hreflang、Open Graph、Twitter Card）
- *   - 每頁的 <aside class="sidebar">（品牌、語言切換、2 章清單、本章錨點、附錄清單）
+ *   - 每頁的 <aside class="sidebar">（品牌、語言切換、章節清單、本章錨點、附錄清單）
  *   - 每頁的 <div class="pager">（上一章／下一章）
  *   - 每頁的 <footer class="site-footer">（授權標示）
  *   - 目錄頁的章節與附錄卡片
