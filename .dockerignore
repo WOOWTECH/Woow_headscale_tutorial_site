@@ -7,7 +7,10 @@ storage_state.json
 node_modules/
 scripts/
 chapters.json
+**/chapters.json
+i18n/
 README.md
+STYLE.md
 Dockerfile
 .dockerignore
 .nojekyll
