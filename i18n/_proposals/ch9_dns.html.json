@@ -1,0 +1,20 @@
+{
+  "file": "ch9_dns.html",
+  "entries": [
+    {
+      "unit": "#why",
+      "zh": "<code>客廳主機</code>",
+      "en": "<code>living-room</code>"
+    },
+    {
+      "unit": "#steps",
+      "zh": "<code>客廳</code>",
+      "en": "<code>living-room</code>"
+    },
+    {
+      "unit": "#steps",
+      "zh": "<code>ssh 客廳</code>",
+      "en": "<code>ssh living-room</code>"
+    }
+  ]
+}

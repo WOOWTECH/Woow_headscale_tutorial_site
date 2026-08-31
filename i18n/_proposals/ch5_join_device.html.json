@@ -1,0 +1,20 @@
+{
+  "file": "ch5_join_device.html",
+  "entries": [
+    {
+      "unit": "#concept",
+      "zh": "<code>tailscale up --login-server &lt;網址&gt;</code>",
+      "en": "<code>tailscale up --login-server &lt;url&gt;</code>"
+    },
+    {
+      "unit": "#steps",
+      "zh": "<code>tailscale up --login-server &lt;Headscale 網址&gt;</code>",
+      "en": "<code>tailscale up --login-server &lt;headscale-url&gt;</code>"
+    },
+    {
+      "unit": "#steps",
+      "zh": "<code>tailscale up --login-server https://你的網址</code>",
+      "en": "<code>tailscale up --login-server https://your-headscale.example</code>"
+    }
+  ]
+}

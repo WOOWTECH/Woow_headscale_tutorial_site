@@ -1,0 +1,10 @@
+{
+  "file": "skills.html",
+  "entries": [
+    {
+      "unit": "#spec",
+      "zh": "<pre class=\"code\">---\nname: headscale-node-auditor\ndescription: 盤點 Headscale 節點與 preauth key、標出風險項，附乾跑模式\n---\n# 用途\n用 headscale 命令盤點節點與金鑰，找出離線、過期、該撤銷的項目。\n\n## 步驟\n1. 執行 headscale nodes list 與 preauthkeys list\n2. 標記風險項，產生「預覽清單」（影響 N 筆）\n3. 等使用者確認後才批次過期／撤銷\n4. 回報結果與例外\n\n## 安全\n- 永不直接刪除，先過期／停用\n- 批次操作前先回報影響範圍\n- 敏感值（key、node id）用佔位符</pre>",
+      "en": "<pre class=\"code\">---\nname: headscale-node-auditor\ndescription: Take inventory of Headscale nodes and preauth keys and flag the risky ones, with a dry-run mode\n---\n# Purpose\nUse the headscale command to take inventory of nodes and keys, and find the items that are offline, expired or due to be revoked.\n\n## Steps\n1. Run headscale nodes list and preauthkeys list\n2. Flag the risky items and produce a \"preview list\" (N items affected)\n3. Wait for the user to confirm before expiring / revoking in bulk\n4. Report the results and any exceptions\n\n## Safety\n- Never delete outright; expire / disable first\n- Report the blast radius before any bulk operation\n- Use placeholders for sensitive values (key, node id)</pre>"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "file": "ch4_user_preauth.html",
+  "entries": [
+    {
+      "unit": "#steps",
+      "zh": "<code>headscale users create &lt;名稱&gt;</code>",
+      "en": "<code>headscale users create &lt;name&gt;</code>"
+    },
+    {
+      "unit": "#manage",
+      "zh": "<code>headscale users destroy &lt;名稱&gt;</code>",
+      "en": "<code>headscale users destroy &lt;name&gt;</code>"
+    }
+  ]
+}

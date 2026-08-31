@@ -1,0 +1,10 @@
+{
+  "file": "ch7_acl.html",
+  "entries": [
+    {
+      "unit": "#default-deny",
+      "zh": "<pre class=\"code-block\"><code>{\n  // 使用者群組（把多個 user 歸成一組）\n  \"groups\": {\n    \"group:family\": [\"alice\", \"bob\"],\n  },\n\n  // 存取控制：這裡沒寫 = 全部拒絕\n  \"acls\": [\n    // 之後才一條條加入你要放行的互連\n  ],\n}</code></pre>",
+      "en": "<pre class=\"code-block\"><code>{\n  // User groups (put several users in one group)\n  \"groups\": {\n    \"group:family\": [\"alice\", \"bob\"],\n  },\n\n  // Access control: nothing listed here = deny everything\n  \"acls\": [\n    // Add the connections you want to allow, one rule at a time\n  ],\n}</code></pre>"
+    }
+  ]
+}
