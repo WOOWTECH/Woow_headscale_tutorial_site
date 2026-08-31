@@ -1,0 +1,10 @@
+{
+  "file": "ch3_first_open.html",
+  "entries": [
+    {
+      "unit": "#commands",
+      "zh": "<code>headscale &lt;子命令&gt; --help</code>",
+      "en": "<code>headscale &lt;subcommand&gt; --help</code>"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "file": "ch10_admin.html",
+  "entries": [
+    {
+      "unit": "#namespace",
+      "zh": "<code>headscale users create 名稱</code>",
+      "en": "<code>headscale users create &lt;name&gt;</code>"
+    }
+  ]
+}

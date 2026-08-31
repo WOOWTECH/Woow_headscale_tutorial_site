@@ -1,0 +1,10 @@
+{
+  "file": "ch6_nodes.html",
+  "entries": [
+    {
+      "unit": "#steps",
+      "zh": "<code>headscale nodes rename --identifier &lt;ID&gt; 新名稱</code>",
+      "en": "<code>headscale nodes rename --identifier &lt;ID&gt; &lt;new-name&gt;</code>"
+    }
+  ]
+}
