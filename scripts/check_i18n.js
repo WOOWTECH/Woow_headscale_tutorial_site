@@ -8,6 +8,7 @@
  *   node scripts/check_i18n.js --accept en:ch7_acl.html#steps [more…]   # 翻好一個單元：記 targetHash、status=complete
  *   node scripts/check_i18n.js --accept en:ch7_acl.html                  # 整頁所有單元
  *   node scripts/check_i18n.js --locale en             # 只看一個語系（預設全部）
+ *   node scripts/check_i18n.js --preflight             # 譯者用：C 閘門連 pending 頁一起驗（正式流程不用，pending 頁本來就不對外）
  *
  * 閘門（對每個非主要語系的每一頁，與 zh 對照）：
  *   A 結構 parity  ：unit 序列相同；每個 unit 的 tag 骨架（tag 名 + id/class/data-icon/href/src）相同
@@ -17,7 +18,8 @@
  *   D Chrome canary：所有頁面的 generator 區（側欄標題、hub-link、kicker、pager label、footer、ui-strings）零漢字
  *   E 帳本一致     ：sourceHash 與現在的 zh 一致（否則 --strict 失敗、--update-ledger 標 stale）；
  *                    status=complete 的單元 targetHash 與現在的譯文一致（手改要標 manual）
- *   F 索引一致     ：pending 頁必須 noindex 且不在 sitemap；complete/stale 頁若語系 published 則 zh/en 互指 hreflang
+ *   F 索引一致     ：未上線（語系 published=false 或該頁 pending）→ noindex、不進 sitemap、兩邊都不發 hreflang；
+ *                    已上線 → index、進 sitemap、zh/en 互指 hreflang（全有或全無）
  */
 
 'use strict';
@@ -32,6 +34,7 @@ const STRICT = argv.includes('--strict');
 const UPDATE = argv.includes('--update-ledger');
 const acceptIdx = argv.indexOf('--accept');
 const ACCEPT = acceptIdx >= 0 ? argv.slice(acceptIdx + 1).filter((a) => !a.startsWith('--')) : [];
+const PREFLIGHT = argv.includes('--preflight');
 const localeIdx = argv.indexOf('--locale');
 const ONLY = localeIdx >= 0 ? argv[localeIdx + 1] : null;
 
@@ -46,8 +49,8 @@ const ALL_FILES = [...new Set(['index.html', CATALOG, ...PAGES, ...HUB_PAGES])];
 const whitelist = i18n.readJSON(path.join(REPO_ROOT, 'i18n', 'code-translate.json'), { allow: [] });
 const today = new Date().toISOString().slice(0, 10);
 
-// 一-鿿 基本區、㐀-䶿 擴充 A、豈-﫿 相容區。用轉義寫，避免複製時被正規化成別的碼位。
-const HAN = /[㐀-䶿一-鿿豈-﫿]/;
+// 一-鿿 基本區、㐀-䶿 擴充 A、豈-﫿 相容區。用轉義寫，避免複製時被正規化成別的碼位。
+const HAN = /[㐀-䶿一-鿿豈-﫿]/;
 const errors = [];
 const warnings = [];
 let ledgerChanged = false;
@@ -205,8 +208,8 @@ for (const [code, loc] of Object.entries(locales)) {
       });
     }
 
-    /* C. CJK 外漏（只看已翻頁） */
-    if (status !== 'pending') {
+    /* C. CJK 外漏（只看已翻頁；--preflight 讓譯者在 accept 前就看得到） */
+    if (status !== 'pending' || PREFLIGHT) {
       const body = en.replace(/<div class="callout i18n-(?:stale|pending)">[\s\S]*?<\/div>/, '');
       const hits = cjkHits(body, `${code}/${f}`);
       hits.slice(0, 20).forEach((h) => err(`[C] ${h}`));
@@ -235,22 +238,22 @@ for (const [code, loc] of Object.entries(locales)) {
     const pageUrl = `${localeBase}/${f === 'index.html' ? '' : f}`;
     const inMap = sitemap.includes(`<loc>${pageUrl}</loc>`);
     const noindex = /<meta name="robots" content="noindex/.test(en);
-    if (isChapter || f === CATALOG) {
-      if (status === 'pending') {
-        if (!noindex) err(`${code}/${f}: [F] pending 頁必須 noindex（重跑 SITE_ROOT=${code} build_nav.js）`);
-        if (inMap && f !== CATALOG) err(`${code}/${f}: [F] pending 頁不得進 sitemap`);
-      } else {
-        if (noindex) err(`${code}/${f}: [F] 已翻頁卻 noindex`);
-        if (!inMap) err(`${code}/${f}: [F] 已翻頁不在 sitemap`);
-        // hreflang 是全有或全無：少一邊 return tag，整組會被 Google 忽略，所以兩邊都驗。
-        if (loc.published) {
-          const zhRel = f === 'index.html' ? '' : f;
-          const zhHas = zh.includes(`hreflang="${loc.hreflang || code}" href="${primaryBase}/${loc.dir || code}/${zhRel}"`);
-          const enHas = en.includes(`hreflang="zh-Hant" href="${primaryBase}/${zhRel}"`);
-          if (!zhHas) err(`${f}: [F] zh 頁缺少指向 ${code} 的 hreflang（重跑 node scripts/build_nav.js）`);
-          if (!enHas) err(`${code}/${f}: [F] 缺少指回 zh 的 hreflang`);
-        }
-      }
+    // 上線 = 語系 published 且該頁翻完。兩者缺一，整頁 noindex、不進 sitemap、不發 hreflang。
+    const live = !!loc.published && status !== 'pending';
+    const zhRel = f === 'index.html' ? '' : f;
+    if (!live) {
+      if (!noindex) err(`${code}/${f}: [F] 未上線的頁必須 noindex（${loc.published ? 'pending 未翻完' : `語系 ${code} published=false`}；重跑 SITE_ROOT=${code} build_nav.js）`);
+      if (inMap) err(`${code}/${f}: [F] 未上線的頁不得進 sitemap`);
+      if (en.includes(`<link rel="alternate" hreflang=`)) err(`${code}/${f}: [F] 未上線卻發了 hreflang（單向 hreflang 會讓整組被忽略）`);
+      if (zh.includes(`href="${primaryBase}/${loc.dir || code}/${zhRel}"`)) err(`${f}: [F] zh 頁指向未上線的 ${code}`);
+    } else {
+      if (noindex) err(`${code}/${f}: [F] 已上線頁卻 noindex`);
+      if (!inMap) err(`${code}/${f}: [F] 已上線頁不在 sitemap`);
+      // hreflang 是全有或全無：少一邊 return tag，整組會被 Google 忽略，所以兩邊都驗。
+      const zhHas = zh.includes(`hreflang="${loc.hreflang || code}" href="${primaryBase}/${loc.dir || code}/${zhRel}"`);
+      const enHas = en.includes(`hreflang="zh-Hant" href="${primaryBase}/${zhRel}"`);
+      if (!zhHas) err(`${f}: [F] zh 頁缺少指向 ${code} 的 hreflang（重跑 node scripts/build_nav.js）`);
+      if (!enHas) err(`${code}/${f}: [F] 缺少指回 zh 的 hreflang`);
     }
 
     report.push({ locale: code, file: f, status, units: zhUnits.length });
