@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Headscale self-hosted VPN control server guide · Self-hosted Tailscale control server</title>
+  <meta name="description" content="12-chapter Headscale guide: install, users and preauth keys, joining devices, node management, ACL, routes, DNS, admin settings, security and troubleshooting." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/tutorial.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Headscale self-hosted VPN control server guide · Self-hosted Tailscale control server" />
+  <meta property="og:description" content="12-chapter Headscale guide: install, users and preauth keys, joining devices, node management, ACL, routes, DNS, admin settings, security and troubleshooting." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/tutorial.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Headscale self-hosted VPN control server guide · Self-hosted Tailscale control server" />
+  <meta name="twitter:description" content="12-chapter Headscale guide: install, users and preauth keys, joining devices, node management, ACL, routes, DNS, admin settings, security and troubleshooting." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+  <main class="home">
+    <div class="hero">
+      <!-- i18n:switch -->
+      <nav class="lang-switch" aria-label="Language"><a href="../tutorial.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="tutorial.html" lang="en" aria-current="page">EN</a></nav>
+      <!-- /i18n:switch -->
+      <span class="kicker-script">your network, your home</span>
+      <div class="kicker">Headscale self-hosted VPN control server guide</div>
+      <h1>Self-hosted Tailscale control server</h1>
+      <p>From installing, creating a user and a preauth key, and joining a device, all the way to node management, ACL, routes, DNS, admin settings, security and troubleshooting. 12 chapters, 10 minutes each. The Sales Handbook, Prompt Library and Skill Handbook are in the <a href="index.html">Resource Hub</a>.</p>
+    </div>
+
+    <section class="chapter-index">
+      <h2 class="index-title">Basics: concepts and installation</h2>
+      <div class="chapter-grid">
+        <a class="chapter-card" href="ch1_intro.html">
+          <span class="num">01</span>
+          <h3>Before you start</h3>
+          <p>First, get clear on what Headscale is, what self-hosting the control server gets you, and how it differs from official Tailscale.</p>
+        </a>
+        <a class="chapter-card" href="ch2_install.html">
+          <span class="num">02</span>
+          <h3>Install Headscale</h3>
+          <p>Install the Headscale add-on into Home Assistant and learn what state it is in right after the install.</p>
+        </a>
+        <a class="chapter-card" href="ch3_first_open.html">
+          <span class="num">03</span>
+          <h3>First open and sign-in</h3>
+          <p>Open the control interface, get to know the CLI / API and admin operations.</p>
+        </a>
+        <a class="chapter-card" href="ch4_user_preauth.html">
+          <span class="num">04</span>
+          <h3>Create a user and a preauth key</h3>
+          <p>Create your first user, generate a preauth key, and get ready to join a device.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="chapter-index" style="margin-top:56px;">
+      <h2 class="index-title">Build: create your own tailnet</h2>
+      <div class="chapter-grid">
+        <a class="chapter-card" href="ch5_join_device.html">
+          <span class="num">05</span>
+          <h3>Join your first device</h3>
+          <p>Point the Tailscale client at Headscale, log in and join the tailnet.</p>
+        </a>
+        <a class="chapter-card" href="ch6_nodes.html">
+          <span class="num">06</span>
+          <h3>Node management</h3>
+          <p>List, rename, expire and remove nodes.</p>
+        </a>
+        <a class="chapter-card" href="ch7_acl.html">
+          <span class="num">07</span>
+          <h3>ACL access control</h3>
+          <p>Use the policy to control who can connect to whom, with minimal exposure.</p>
+        </a>
+        <a class="chapter-card" href="ch8_routes.html">
+          <span class="num">08</span>
+          <h3>Routes and exit nodes</h3>
+          <p>Subnet router and exit node: bring a whole subnet home.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="chapter-index" style="margin-top:56px;">
+      <h2 class="index-title">Manage: operations and security</h2>
+      <div class="chapter-grid">
+        <a class="chapter-card" href="ch9_dns.html">
+          <span class="num">09</span>
+          <h3>DNS and MagicDNS</h3>
+          <p>Connect devices by name, and understand MagicDNS and custom DNS.</p>
+        </a>
+        <a class="chapter-card" href="ch10_admin.html">
+          <span class="num">10</span>
+          <h3>Admin settings</h3>
+          <p>Policy, DERP, users (namespaces) and version updates.</p>
+        </a>
+        <a class="chapter-card" href="ch11_security.html">
+          <span class="num">11</span>
+          <h3>Security and minimal exposure</h3>
+          <p>Check the entry point, the keys, the ACL and how much is publicly exposed.</p>
+        </a>
+        <a class="chapter-card" href="ch12_troubleshooting.html">
+          <span class="num">12</span>
+          <h3>Troubleshooting and maintenance</h3>
+          <p>Troubleshoot devices that will not connect, offline nodes, DERP and updates.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="chapter-index" style="margin-top:56px;">
+      <h2 class="index-title">Appendices</h2>
+      <div class="chapter-grid">
+
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</body>
+</html>

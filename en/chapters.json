@@ -1,0 +1,167 @@
+{
+  "_readme": "Single source for the en/ site root (nav, SEO, catalog, sitemap). Human-readable fields are translation units tracked in i18n/ledger.json. Rebuild with: SITE_ROOT=en node scripts/build_nav.js",
+  "site": {
+    "title": "Headscale self-hosted VPN control server guide",
+    "brand": "Headscale Guide",
+    "subtitle": "Self-hosted Tailscale control server",
+    "baseUrl": "https://headscale-guide.woowtech.io/en",
+    "repoUrl": "https://github.com/WOOWTECH/Woow_headscale_tutorial_site",
+    "locale": "en_US",
+    "description": "12-chapter Headscale guide: install, users and preauth keys, joining devices, node management, ACL, routes, DNS, admin settings, security and troubleshooting.",
+    "ogImage": "assets/og/headscale-guide.en.png",
+    "license": {
+      "name": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/deed.en",
+      "holder": "WoowTech"
+    },
+    "assetBaseUrl": "https://headscale-guide.woowtech.io",
+    "assetBase": "../",
+    "lang": "en",
+    "localeCode": "en",
+    "localeAlternate": [
+      "zh_TW"
+    ],
+    "fontsUrl": "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap"
+  },
+  "hub": {
+    "catalog": "tutorial.html",
+    "navLabel": "Resource Hub",
+    "pages": [
+      "sales.html",
+      "prompts.html",
+      "skills.html"
+    ]
+  },
+  "chapters": [
+    {
+      "file": "ch1_intro.html",
+      "num": "01",
+      "navLabel": "Before you start",
+      "title": "Before you start",
+      "pagerTitle": "01 · Requirements and security boundaries",
+      "card": "First, get clear on what Headscale is, what self-hosting the control server gets you, and how it differs from official Tailscale.",
+      "description": "Headscale self-hosted VPN control server, planning before you start: why self-host, how it differs from official Tailscale, accounts and security boundaries.",
+      "part": "Basics: concepts and installation"
+    },
+    {
+      "file": "ch2_install.html",
+      "num": "02",
+      "navLabel": "Install",
+      "title": "Install Headscale",
+      "pagerTitle": "02 · Install Headscale",
+      "card": "Install the Headscale add-on into Home Assistant and learn what state it is in right after the install.",
+      "description": "Home Assistant Headscale add-on install guide: add the repository, install, start, and get ready for the first open.",
+      "part": "Basics: concepts and installation"
+    },
+    {
+      "file": "ch3_first_open.html",
+      "num": "03",
+      "navLabel": "First open",
+      "title": "First open and sign-in",
+      "pagerTitle": "03 · First open and sign-in",
+      "card": "Open the control interface, get to know the CLI / API and admin operations.",
+      "description": "Headscale first open: the control interface, the CLI and the API, and admin operations.",
+      "part": "Basics: concepts and installation"
+    },
+    {
+      "file": "ch4_user_preauth.html",
+      "num": "04",
+      "navLabel": "Users and keys",
+      "title": "Create a user and a preauth key",
+      "pagerTitle": "04 · Users and preauth keys",
+      "card": "Create your first user, generate a preauth key, and get ready to join a device.",
+      "description": "Headscale, create a user and a preauth key: namespaces (the legacy name), users and preauth keys.",
+      "part": "Basics: concepts and installation"
+    },
+    {
+      "file": "ch5_join_device.html",
+      "num": "05",
+      "navLabel": "Join a device",
+      "title": "Join your first device",
+      "pagerTitle": "05 · Join your first device",
+      "card": "Point the Tailscale client at Headscale, log in and join the tailnet.",
+      "description": "Headscale, join a device: point the Tailscale client at your self-hosted control server, log in and verify.",
+      "part": "Build: create your own tailnet"
+    },
+    {
+      "file": "ch6_nodes.html",
+      "num": "06",
+      "navLabel": "Node management",
+      "title": "Node management",
+      "pagerTitle": "06 · Node management",
+      "card": "List, rename, expire and remove nodes.",
+      "description": "Headscale node management: list, rename, expire and remove devices.",
+      "part": "Build: create your own tailnet"
+    },
+    {
+      "file": "ch7_acl.html",
+      "num": "07",
+      "navLabel": "ACL access control",
+      "title": "ACL access control",
+      "pagerTitle": "07 · ACL access control",
+      "card": "Use the policy to control who can connect to whom, with minimal exposure.",
+      "description": "Headscale ACL guide: policy rules, access control and minimal exposure.",
+      "part": "Build: create your own tailnet"
+    },
+    {
+      "file": "ch8_routes.html",
+      "num": "08",
+      "navLabel": "Routes",
+      "title": "Routes and exit nodes",
+      "pagerTitle": "08 · Routes and exit nodes",
+      "card": "Subnet router and exit node: bring a whole subnet home.",
+      "description": "Headscale routing guide: subnet router, exit node and local network forwarding.",
+      "part": "Build: create your own tailnet"
+    },
+    {
+      "file": "ch9_dns.html",
+      "num": "09",
+      "navLabel": "DNS",
+      "title": "DNS and MagicDNS",
+      "pagerTitle": "09 · DNS and MagicDNS",
+      "card": "Connect devices by name, and understand MagicDNS and custom DNS.",
+      "description": "Headscale DNS guide: MagicDNS, name resolution and custom DNS settings.",
+      "part": "Manage: operations and security"
+    },
+    {
+      "file": "ch10_admin.html",
+      "num": "10",
+      "navLabel": "Admin settings",
+      "title": "Admin settings",
+      "pagerTitle": "10 · Admin settings",
+      "card": "Policy, DERP, users (namespaces) and version updates.",
+      "description": "Headscale admin settings: policy, DERP, users (namespaces) and version updates.",
+      "part": "Manage: operations and security"
+    },
+    {
+      "file": "ch11_security.html",
+      "num": "11",
+      "navLabel": "Security check",
+      "title": "Security and minimal exposure",
+      "pagerTitle": "11 · Security and minimal exposure",
+      "card": "Check the entry point, the keys, the ACL and how much is publicly exposed.",
+      "description": "Headscale security check: the entry point, preauth keys, the ACL and minimal exposure.",
+      "part": "Manage: operations and security"
+    },
+    {
+      "file": "ch12_troubleshooting.html",
+      "num": "12",
+      "navLabel": "Troubleshoot and maintain",
+      "title": "Troubleshooting and maintenance",
+      "pagerTitle": "12 · Troubleshooting and maintenance",
+      "card": "Troubleshoot devices that will not connect, offline nodes, DERP and updates.",
+      "description": "Headscale troubleshooting guide: connections, offline nodes, DERP, updates and backups.",
+      "part": "Manage: operations and security"
+    }
+  ],
+  "appendices": [],
+  "sectionLabels": {},
+  "i18n": {
+    "_readme": "hreflang is what the zh pages use to point at themselves; xDefault says which locale to point at (en or primary), and can be flipped in one line. The locale list is in i18n/locales.json.",
+    "hreflang": [
+      "zh-Hant",
+      "zh"
+    ],
+    "xDefault": "en"
+  }
+}
