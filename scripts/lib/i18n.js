@@ -200,9 +200,10 @@ function alternates({ isPrimary, locale, page, primaryBase, primaryLangs, locale
     if (xDefault === 'primary') out.push({ hreflang: 'x-default', href: `${primaryBase}/${rel}` });
     return out;
   }
-  if (pageStatus(ledger, locale, page) === 'pending') return out;
-  const self = `${localeBase}/${rel}`;
   const me = locales[locale] || {};
+  // hreflang 是全有或全無：語系還沒上線就一個都不發，免得單向指向被 Google 整組忽略。
+  if (!me.published || pageStatus(ledger, locale, page) === 'pending') return out;
+  const self = `${localeBase}/${rel}`;
   out.push({ hreflang: me.hreflang || locale, href: self });
   if (xDefault === locale) out.push({ hreflang: 'x-default', href: self });
   for (const l of primaryLangs) out.push({ hreflang: l, href: `${primaryBase}/${rel}` });
