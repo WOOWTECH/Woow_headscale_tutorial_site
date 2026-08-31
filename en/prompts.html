@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Headscale CLI/API Prompt Library · WoowTech</title>
+<meta name="description" content="23 natural-language prompts for driving your tailnet through the headscale CLI/API: users and preauth keys, node inventory, ACL, routes, DNS, backups and troubleshooting. Every prompt is ready to copy." />
+<meta name="theme-color" content="#6183FC" />
+<link rel="canonical" href="https://headscale-guide.woowtech.io/en/prompts.html" />
+  <meta name="robots" content="noindex, follow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+<style>
+:root{--blue:#6183FC;--blue7:#3F63E8;--blue5:#EEF2FF;--ink:#1B2033;--ink7:#3A4054;--ink5:#6B7186;--paper:#F7F8FC;--surface:#fff;--alt:#F1F3FA;--hair:#E2E5EF;--rs:12px;--pill:999px;}
+*{box-sizing:border-box}body{margin:0;font-family:Poppins,-apple-system,"Noto Sans TC",sans-serif;color:var(--ink);background:var(--paper);line-height:1.7}h1,h2{font-family:Outfit,Poppins,"Noto Sans TC",sans-serif}a{color:var(--blue7);text-decoration:none}
+.layout{display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--hair);padding:28px 22px;position:sticky;top:0;height:100vh;overflow:auto}
+.sidebar .brand{display:block;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px}.sidebar .brand-sub{font-size:13px;color:var(--ink5);margin-bottom:6px}.sidebar .hub-link{display:inline-block;font-size:12.5px;color:var(--ink5);margin-bottom:22px}.sidebar h2{font-size:12px;color:var(--ink5);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin:0 0 12px}.sidebar a.toc{display:block;padding:7px 12px;border-radius:8px;color:var(--ink7);font-size:13.5px}.sidebar a.toc:hover{background:var(--alt)}
+.content{padding:56px 64px 96px;max-width:900px}
+.kicker-script{font-family:Yellowtail,cursive;font-size:30px;color:var(--blue);display:block;margin-bottom:10px}.kicker{color:var(--blue);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}h1{font-size:38px;font-weight:700;margin:0 0 14px;line-height:1.25}.lead{font-size:17px;color:var(--ink7);margin:0 0 30px}
+section{margin-bottom:44px}section h2{font-size:22px;margin:0 0 16px;padding-left:14px;border-left:4px solid var(--blue)}
+.callout{padding:14px 18px;border-radius:var(--rs);background:var(--alt);border:1px solid var(--hair);margin:16px 0;font-size:14.5px}
+.pc{background:var(--surface);border:1px solid var(--hair);border-radius:var(--rs);padding:16px 18px;margin-bottom:14px}.pc .lbl{font-size:12px;color:var(--blue7);font-weight:600;margin-bottom:6px}.pc pre{margin:0 0 10px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;white-space:pre-wrap;background:#F7F8FC;padding:12px;border-radius:8px}.copy{font-size:12.5px;font-weight:600;color:var(--blue7);background:var(--blue5);border:0;padding:6px 14px;border-radius:var(--pill);cursor:pointer}
+footer{margin-top:40px;padding-top:24px;border-top:1px solid var(--hair);font-size:13px;color:var(--ink5)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.content{padding:32px 20px 64px}}
+</style>
+<!-- i18n:css --><link rel="stylesheet" href="../assets/css/i18n.css" /><!-- /i18n:css -->
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<a class="brand" href="tutorial.html">Headscale Guide</a>
+<div class="brand-sub">Self-hosted Tailscale control server</div>
+<!-- i18n:switch --><nav class="lang-switch" aria-label="Language"><a href="../prompts.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="prompts.html" lang="en" aria-current="page">EN</a></nav><!-- /i18n:switch -->
+<a class="hub-link" href="index.html">◂ Resource Hub</a>
+<h2>This page</h2>
+<a class="toc" href="#why">What this is</a>
+<a class="toc" href="#howto">How to use it</a>
+<a class="toc" href="#cat-user">Users and keys</a>
+<a class="toc" href="#cat-node">Node management</a>
+<a class="toc" href="#cat-acl">ACL and routes</a>
+<a class="toc" href="#cat-dns">DNS and backups</a>
+<a class="toc" href="#cat-ops">Troubleshooting and operations</a>
+<a class="toc" href="#faq">FAQ</a>
+</aside>
+<main class="content">
+<div class="chapter-header">
+<span class="kicker-script">talk to your network</span>
+<div class="kicker">WoowTech · Headscale CLI/API Prompt Library</div>
+<h1>Command your tailnet in one sentence</h1>
+<p class="lead">Hand the natural-language prompts below to an AI agent and let it manage users, preauth keys, nodes, ACLs, routes, DNS and backups for you through the headscale CLI/API. Copy any of them, reword them to match your own setup, and they are ready to use.</p>
+</div>
+<section id="why" data-nav="why"><h2>What this is</h2>
+<p>You manage the Headscale control server from the <code>headscale</code> command line, with subcommands such as <code>users</code>, <code>preauthkeys</code>, <code>nodes</code>, <code>policy</code>, <code>routes</code> and <code>dns</code>. Wrap those as agent tools and you can drive them in natural language. This handbook is the template library for "what you say to the agent".</p>
+<div class="callout"><strong>Prerequisite:</strong> the agent has to be able to reach Headscale (usually the environment where the <code>headscale</code> command runs). Use placeholders for sensitive values (keys, node IDs) instead of pasting the real ones.</div>
+</section>
+<section id="howto" data-nav="howto"><h2>How to use these prompts</h2>
+<p>Copy → paste into the agent → replace the placeholder words with your own wording → send. What matters is being clear about the scope and the action.</p>
+<div class="callout"><strong>Safe habit:</strong> for any "delete, revoke, change the ACL" action, make the agent report "this will affect N items" and wait for your confirmation before it runs.</div>
+</section>
+<section id="cat-user" data-nav="cat-user"><h2>Users and preauth keys</h2>
+<div class="pc"><div class="lbl">Create a user</div><pre>Use headscale users create to create a user named "family", and report the result. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Generate a preauth key</div><pre>Generate a preauth key for the user "family", valid for 7 days and not reusable, and return the key (remind me to revoke it once it has been used). Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">List all users</div><pre>Use headscale users list to list every user and its creation time. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Inventory unused keys</div><pre>List every preauth key, flag the ones that are still unused, expiring soon or already expired, and tell me which ones I should revoke. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Revoke a key</div><pre>Revoke one preauth key (list them first so I can confirm which one, then run it). Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Delete a user</div><pre>List the nodes that belong to one user, confirm none of them is still in use, then delete the user (report the blast radius first). Answer in English.</pre><button class="copy">Copy</button></div>
+</section>
+<section id="cat-node" data-nav="cat-node"><h2>Node management</h2>
+<div class="pc"><div class="lbl">List nodes</div><pre>Use headscale nodes list to list every node: name, IP address, status, whether it has expired. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Find offline nodes</div><pre>Find the nodes that have not come online in the last 7 days and list them, so I can decide whether to expire them. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Rename a node</div><pre>Rename one node to something easier to remember (list the current names first so I can confirm). Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Expire a node</div><pre>Mark one node that is no longer in use as expired so it leaves the tailnet (confirm the node details first). Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Node health inventory</div><pre>Take inventory of every node's status and IP address, and flag the ones with a problem (offline, expired, unexpected IP address). Answer in English.</pre><button class="copy">Copy</button></div>
+</section>
+<section id="cat-acl" data-nav="cat-acl"><h2>ACL and routes</h2>
+<div class="pc"><div class="lbl">Review the ACL</div><pre>Read the current policy file and explain it to me in plain language: which users and groups can connect to each other right now, and which are blocked. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Add one allow rule</div><pre>Add one ACL rule to the policy: allow every node of the user "family" to connect to the others (show me the diff before the change so I can confirm). Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">ACL minimization audit</div><pre>Check the current ACL, find the rules that are too wide (a * that allows everything, for example), and suggest how to tighten them. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">List routes</div><pre>Use headscale routes list to list every subnet route and exit node, and flag the ones that are not approved yet. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Approve a route</div><pre>Approve one subnet route (list them first so I can confirm which one). Answer in English.</pre><button class="copy">Copy</button></div>
+</section>
+<section id="cat-dns" data-nav="cat-dns"><h2>DNS and backups</h2>
+<div class="pc"><div class="lbl">Check MagicDNS</div><pre>Confirm whether MagicDNS is enabled, and list the current DNS settings. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Back up policy and keys</div><pre>Back up the current policy file and the critical settings (return the contents so I can save them, and do not paste sensitive values). Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Restore drill</div><pre>Write a Headscale disaster recovery procedure: assume the control server is down, and describe how to rebuild users, nodes and the policy from a backup. Answer in English.</pre><button class="copy">Copy</button></div>
+</section>
+<section id="cat-ops" data-nav="cat-ops"><h2>Troubleshooting and operations</h2>
+<div class="pc"><div class="lbl">Health check</div><pre>Run a Headscale health check: control server status, version, node count, offline nodes. Report each item in turn. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Check the version</div><pre>Report the current Headscale version and check whether an official update exists (if there is one, list the key points from the release notes). Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">Troubleshoot a node that cannot connect</div><pre>A node cannot reach the control server. Give me a troubleshooting checklist: client status, network, the connection to the control server, whether the key is still valid. Answer in English.</pre><button class="copy">Copy</button></div>
+<div class="pc"><div class="lbl">DERP check</div><pre>Confirm that the DERP settings and relays are healthy, and that traffic can fall back to a DERP relay when nodes cannot connect directly. Answer in English.</pre><button class="copy">Copy</button></div>
+</section>
+<section id="faq" data-nav="faq"><h2>FAQ</h2>
+<div class="callout"><strong>How do I edit a prompt so it does not disturb the tailnet by accident?</strong><br>Always add the scope and a "report first, then run" step. For example: "list the items this will affect and wait for my confirmation before you run it".</div>
+<div class="callout"><strong>What do I do about sensitive values?</strong><br>Use placeholders for preauth keys and node IDs, and never paste the real values into the conversation; if you have to paste one, redact it first.</div>
+<div class="callout"><strong>Cannot find a command?</strong><br>Look the subcommand up with <code>headscale --help</code> or in the official docs; versions differ slightly, so have the agent check the docs first.</div>
+<div class="callout"><strong>Can I let the agent delete a node or a user directly?</strong><br>Prefer to expire or disable rather than delete, and require it to report the blast radius first.</div>
+</section>
+<footer>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under CC BY 4.0. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them.</footer>
+</main>
+</div>
+<script>
+document.querySelectorAll('.copy').forEach(function(b){b.addEventListener('click',function(){var t=b.parentElement.querySelector('pre').innerText;function d(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy';},1500)}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(d,fb)}else{fb()}function fb(){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);d()}})});
+</script>
+</body>
+</html>

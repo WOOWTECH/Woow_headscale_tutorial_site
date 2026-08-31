@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Headscale AI Agent Skill Handbook · WoowTech</title>
+<meta name="description" content="A catalog of AI agent skills for a Headscale/Tailscale private tailnet: a selection of useful skills and ecosystem tools, an install quick reference, the SKILL.md spec and safety rules (surveyed 2026-08)." />
+<meta name="theme-color" content="#6183FC" />
+<link rel="canonical" href="https://headscale-guide.woowtech.io/en/skills.html" />
+  <meta name="robots" content="noindex, follow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+<style>
+:root{--blue:#6183FC;--blue7:#3F63E8;--blue5:#EEF2FF;--ink:#1B2033;--ink7:#3A4054;--ink5:#6B7186;--paper:#F7F8FC;--surface:#fff;--alt:#F1F3FA;--hair:#E2E5EF;--rs:12px;--pill:999px;}
+*{box-sizing:border-box}body{margin:0;font-family:Poppins,-apple-system,"Noto Sans TC",sans-serif;color:var(--ink);background:var(--paper);line-height:1.7}h1,h2,h3{font-family:Outfit,Poppins,"Noto Sans TC",sans-serif}a{color:var(--blue7);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--hair);padding:28px 22px;position:sticky;top:0;height:100vh;overflow:auto}
+.sidebar .brand{display:block;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px}.sidebar .brand-sub{font-size:13px;color:var(--ink5);margin-bottom:6px}.sidebar .hub-link{display:inline-block;font-size:12.5px;color:var(--ink5);margin-bottom:22px}.sidebar h2{font-size:12px;color:var(--ink5);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin:0 0 12px}.sidebar a.toc{display:block;padding:7px 12px;border-radius:8px;color:var(--ink7);font-size:13.5px}.sidebar a.toc:hover{background:var(--alt)}
+.content{padding:56px 64px 96px;max-width:900px}
+.kicker-script{font-family:Yellowtail,cursive;font-size:30px;color:var(--blue);display:block;margin-bottom:10px}.kicker{color:var(--blue);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}h1{font-size:38px;font-weight:700;margin:0 0 14px;line-height:1.25}.lead{font-size:17px;color:var(--ink7);margin:0 0 30px}
+section{margin-bottom:44px}section h2{font-size:22px;margin:0 0 16px;padding-left:14px;border-left:4px solid var(--blue)}
+.callout{padding:14px 18px;border-radius:var(--rs);background:var(--alt);border:1px solid var(--hair);margin:16px 0;font-size:14.5px}.callout.warn{background:#FEF3EE;border-color:rgba(230,109,62,.35)}.callout.danger{background:#FEEEEF;border-color:rgba(244,93,109,.35)}
+.skill{background:var(--surface);border:1px solid var(--hair);border-radius:var(--rs);padding:16px 18px;margin-bottom:14px}.skill h3{margin:0 0 4px;font-size:16px}.skill .meta{font-size:12.5px;color:var(--ink5);margin-bottom:8px}.skill p{margin:0;font-size:14px;color:var(--ink7)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--rs);overflow:hidden}th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--hair)}th{background:var(--blue5);font-weight:600}tr:last-child td{border-bottom:0}
+pre.code{background:#F7F8FC;border:1px solid var(--hair);border-radius:8px;padding:14px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;overflow-x:auto}
+footer{margin-top:40px;padding-top:24px;border-top:1px solid var(--hair);font-size:13px;color:var(--ink5)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.content{padding:32px 20px 64px}}
+</style>
+<!-- i18n:css --><link rel="stylesheet" href="../assets/css/i18n.css" /><!-- /i18n:css -->
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<a class="brand" href="tutorial.html">Headscale Guide</a>
+<div class="brand-sub">Self-hosted Tailscale control server</div>
+<!-- i18n:switch --><nav class="lang-switch" aria-label="Language"><a href="../skills.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="skills.html" lang="en" aria-current="page">EN</a></nav><!-- /i18n:switch -->
+<a class="hub-link" href="index.html">◂ Resource Hub</a>
+<h2>This page</h2>
+<a class="toc" href="#why">What a skill is</a>
+<a class="toc" href="#install">How to install</a>
+<a class="toc" href="#picks">Skill picks</a>
+<a class="toc" href="#tools">Ecosystem tools</a>
+<a class="toc" href="#compat">Compatibility notes</a>
+<a class="toc" href="#safety">Safety rules</a>
+<a class="toc" href="#spec">SKILL.md spec</a>
+<a class="toc" href="#faq">FAQ</a>
+</aside>
+<main class="content">
+<div class="chapter-header">
+<span class="kicker-script">teach your agent networking</span>
+<div class="kicker">WoowTech · Headscale Skill Handbook</div>
+<h1>Let your AI agent manage your private tailnet</h1>
+<p class="lead">A skill is the "instruction manual" that teaches an AI agent one particular craft. Install a skill for tailnet management and your agent will follow best practices to manage nodes, take inventory of keys, and keep the ACL and the backups in order. This handbook collects a pick of skills, ecosystem tools and an install quick reference (surveyed 2026-08).</p>
+</div>
+<section id="why" data-nav="why"><h2>What a skill is and why you would install one</h2>
+<p>Think of a skill as an "SOP manual for the AI": a single <code>SKILL.md</code> spells out which task it applies to, which steps to follow, which tools to use and what to watch out for. Once the agent has read it, it can do one more thing, and it does it the same way every time instead of guessing.</p>
+<p>For Headscale the common cases are node inventory, preauth key management, ACL audits, and backups and restore drills. Install the matching skill and all you have to do is give the order; the agent follows the SOP.</p>
+</section>
+<section id="install" data-nav="install"><h2>How to install (the 3-minute version)</h2>
+<div class="callout"><strong>Prerequisite:</strong> your agent has to support skills (Pi Agent, Claude Code and the like). The idea is the same everywhere: put the skill folder into the skills directory.</div>
+<ul>
+<li>Find the skill's GitHub repo and note the URL.</li>
+<li>In your agent's skill install panel, paste the repo URL or pick the directory.</li>
+<li>After installing, confirm that the skill shows up in the list of available skills (or in the system prompt).</li>
+</ul>
+</section>
+<section id="picks" data-nav="picks"><h2>Skill picks for tailnet management (a home user's view)</h2>
+<p>These are the kinds of skill worth looking for, based on the real needs that come up when you manage a self-hosted VPN tailnet. Star counts follow GitHub as it stands (2026-08); before you install, always check that the repo is still maintained.</p>
+<div class="skill"><h3>Node inventory</h3><div class="meta">Category: operations · calls the headscale CLI</div><p>Lists every node, flags the offline and expired ones and produces a health report, with a dry-run mode.</p></div>
+<div class="skill"><h3>Preauth key audit</h3><div class="meta">Category: security · headscale preauthkeys</div><p>Takes inventory of every key, flags the ones that are unused, expiring soon or due to be revoked, and can revoke them in bulk (report first, act second).</p></div>
+<div class="skill"><h3>Minimal ACL</h3><div class="meta">Category: security · policy</div><p>Reads the policy file, explains it in plain language, finds the rules that are open too wide and suggests how to tighten them, with a diff.</p></div>
+<div class="skill"><h3>Backups and restore drills</h3><div class="meta">Category: operations · config files</div><p>Backs up policy, keys and config, and produces the disaster recovery steps.</p></div>
+<div class="skill"><h3>Route and exit node management</h3><div class="meta">Category: admin · routes</div><p>Takes inventory of subnet routes and exit nodes, flags the ones not yet approved, and helps you approve or withdraw them.</p></div>
+<div class="callout warn"><strong>Names and star counts follow GitHub as it stands:</strong> the ecosystem moves fast, so what this page lists are "categories" — the needs that stay stable. Check the actual repo names and star counts again before you install.</div>
+</section>
+<section id="tools" data-nav="tools"><h2>Ecosystem tools (not just skills)</h2>
+<table>
+<tr><th>Tool</th><th>What it is for</th><th>When to use it</th></tr>
+<tr><td><strong>juanfont/headscale</strong></td><td>The official control server repo</td><td>Reading the docs, checking updates, filing issues</td></tr>
+<tr><td><strong>Tailscale client</strong></td><td>The connection software on each device</td><td>Joining each device to the tailnet (Chapter 5)</td></tr>
+<tr><td><strong>headscale-ui</strong></td><td>A third-party web admin interface</td><td>When you want to manage it graphically</td></tr>
+<tr><td><strong>Prometheus monitoring</strong></td><td>Metrics and alerts</td><td>Watching the health of the control server</td></tr>
+<tr><td><strong>Home Assistant integration</strong></td><td>Bringing the tailnet into HA</td><td>Node status, automation triggers</td></tr>
+</table>
+</section>
+<section id="compat" data-nav="compat"><h2>Compatibility notes</h2>
+<ul>
+<li><strong>Version alignment:</strong> your Headscale version and your Tailscale client version have to be compatible; read the release notes before a major upgrade.</li>
+<li><strong>Permissions:</strong> most operations need an environment where the headscale command can run, and the agent has to be able to reach the control server.</li>
+<li><strong>Client side:</strong> mind the Tailscale client version on the device as well; one that is too old may not be able to connect to a newer control server.</li>
+</ul>
+</section>
+<section id="safety" data-nav="safety"><h2>Safety rules</h2>
+<div class="callout danger"><strong>Never let a skill delete anything outright:</strong> every operation goes "report first → you confirm → then execute", and deleting always starts with "expire / disable" rather than "delete".</div>
+<div class="callout warn"><strong>Do not let keys leak:</strong> before you install a third-party skill, check whether it sends preauth keys or node IDs anywhere outside. If you do not know where it came from, do not install it.</div>
+<div class="callout"><strong>Dry run first:</strong> for a bulk operation, ask the skill for a preview that says "this will affect N items", and let it through only once you have confirmed it is correct.</div>
+</section>
+<section id="spec" data-nav="spec"><h2>SKILL.md spec reference</h2>
+<p>To write a Headscale skill of your own, the core of it is a single <code>SKILL.md</code>:</p>
+<pre class="code">---
+name: headscale-node-auditor
+description: Take inventory of Headscale nodes and preauth keys and flag the risky ones, with a dry-run mode
+---
+# Purpose
+Use the headscale command to take inventory of nodes and keys, and find the items that are offline, expired or due to be revoked.
+
+## Steps
+1. Run headscale nodes list and preauthkeys list
+2. Flag the risky items and produce a "preview list" (N items affected)
+3. Wait for the user to confirm before expiring / revoking in bulk
+4. Report the results and any exceptions
+
+## Safety
+- Never delete outright; expire / disable first
+- Report the blast radius before any bulk operation
+- Use placeholders for sensitive values (key, node id)</pre>
+<p>For the full spec, see the skill documentation for the agent you use.</p>
+</section>
+<section id="faq" data-nav="faq"><h2>FAQ</h2>
+<div class="callout"><strong>How is a skill different from an app or an integration?</strong><br>An app is "a program with an interface", an integration is "two services wired together", and a skill is the "teach the AI how to do it" manual: install it and the agent can carry out the work itself.</div>
+<div class="callout"><strong>Can the wrong skill break my tailnet?</strong><br>It can. That is why the safety rules matter most: install only from sources you trust, always dry run first, expire rather than delete outright, and do not let keys leak.</div>
+<div class="callout"><strong>Can I write my own skill?</strong><br>You can. Follow the SKILL.md skeleton above and write the "Steps" and "Safety" sections out clearly.</div>
+<div class="callout"><strong>Which skill is worth installing first?</strong><br>"Node inventory" and "Preauth key audit" make the biggest difference: they give you an immediate picture of tailnet health and key risk.</div>
+</section>
+<footer>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under CC BY 4.0. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them.</footer>
+</main>
+</div>
+</body>
+</html>

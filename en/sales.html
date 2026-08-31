@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Headscale self-hosted VPN options · Sales Handbook · WoowTech</title>
+<meta name="description" content="Link the household's devices into a private tailnet of your own: a self-hosted Headscale VPN control server with encrypted peer-to-peer connections, ACL access control and cross-device connectivity, and the control server's data staying in your home." />
+<meta name="theme-color" content="#6183FC" />
+<link rel="canonical" href="https://headscale-guide.woowtech.io/en/sales.html" />
+  <meta name="robots" content="noindex, follow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+<style>
+:root{--blue:#6183FC;--blue7:#3F63E8;--blue5:#EEF2FF;--ink:#1B2033;--ink7:#3A4054;--ink5:#6B7186;--paper:#F7F8FC;--surface:#fff;--alt:#F1F3FA;--hair:#E2E5EF;--r:20px;--rs:12px;--pill:999px;--shadow:0 26px 60px -18px rgba(97,131,252,.28);}
+*{box-sizing:border-box}body{margin:0;font-family:Poppins,-apple-system,"Noto Sans TC",sans-serif;color:var(--ink);background:var(--paper);line-height:1.7}h1,h2,h3{font-family:Outfit,Poppins,"Noto Sans TC",sans-serif}a{color:var(--blue7);text-decoration:none}
+.layout{display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--hair);padding:28px 22px;position:sticky;top:0;height:100vh;overflow:auto}
+.sidebar .brand{display:block;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.sidebar .brand-sub{font-size:13px;color:var(--ink5);margin-bottom:6px}
+.sidebar .hub-link{display:inline-block;font-size:12.5px;color:var(--ink5);margin-bottom:22px}
+.sidebar h2{font-size:12px;color:var(--ink5);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin:0 0 12px}
+.sidebar a.toc{display:block;padding:7px 12px;border-radius:8px;color:var(--ink7);font-size:13.5px}.sidebar a.toc:hover{background:var(--alt)}
+.content{padding:56px 64px 96px;max-width:900px}
+.kicker-script{font-family:Yellowtail,cursive;font-size:30px;color:var(--blue);display:block;margin-bottom:10px}
+.kicker{color:var(--blue);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+h1{font-size:38px;font-weight:700;margin:0 0 14px;line-height:1.25}
+.lead{font-size:17px;color:var(--ink7);margin:0 0 30px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:30px;overflow:hidden}
+.kpi{padding:22px;text-align:center}.kpi+.kpi{border-left:1px solid var(--hair)}.kpi b{display:block;font-size:26px;color:var(--blue)}.kpi span{font-size:13px;color:var(--ink5)}
+section{margin-bottom:44px}section h2{font-size:22px;margin:0 0 16px;padding-left:14px;border-left:4px solid var(--blue)}
+.callout{padding:14px 18px;border-radius:var(--rs);background:var(--alt);border:1px solid var(--hair);margin:16px 0;font-size:14.5px}.callout.tip{background:#F0FAEE}.callout.warn{background:#FEF3EE;border-color:rgba(230,109,62,.35)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--rs);overflow:hidden}th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--hair)}th{background:var(--blue5);font-weight:600}tr:last-child td{border-bottom:0}
+.steps{list-style:none;counter-reset:s;margin:16px 0;padding:0}.steps li{counter-increment:s;position:relative;padding:0 0 14px 50px}.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}.steps h3{margin:0 0 4px;font-size:16px}.steps p{margin:0;color:var(--ink7);font-size:14.5px}
+.cta{background:linear-gradient(135deg,#6183FC,#4A6DE8);color:#fff;border-radius:var(--r);padding:36px;box-shadow:var(--shadow)}.cta h2{color:#fff;border:0;padding:0}.cta a.btn{display:inline-block;background:#fff;color:var(--blue7);font-weight:700;padding:12px 26px;border-radius:var(--pill);margin-top:10px}
+footer{margin-top:40px;padding-top:24px;border-top:1px solid var(--hair);font-size:13px;color:var(--ink5)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.content{padding:32px 20px 64px}.kpis{grid-template-columns:1fr}}
+</style>
+<!-- i18n:css --><link rel="stylesheet" href="../assets/css/i18n.css" /><!-- /i18n:css -->
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<a class="brand" href="tutorial.html">Headscale Guide</a>
+<div class="brand-sub">Self-hosted Tailscale control server</div>
+<!-- i18n:switch --><nav class="lang-switch" aria-label="Language"><a href="../sales.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="sales.html" lang="en" aria-current="page">EN</a></nav><!-- /i18n:switch -->
+<a class="hub-link" href="index.html">◂ Resource Hub</a>
+<h2>This page</h2>
+<a class="toc" href="#why">Why you need it</a>
+<a class="toc" href="#what">What it is</a>
+<a class="toc" href="#abilities">Four core capabilities</a>
+<a class="toc" href="#privacy">Control server at home</a>
+<a class="toc" href="#day">A day with it</a>
+<a class="toc" href="#compare">Compare the two options</a>
+<a class="toc" href="#faq">FAQ</a>
+<a class="toc" href="#cta">Next step</a>
+</aside>
+<main class="content">
+<div class="chapter-header">
+<span class="kicker-script">your network, your home</span>
+<div class="kicker">WoowTech · Sales Handbook</div>
+<h1>Link the devices in your home into a private tailnet of your own</h1>
+<p class="lead">A self-hosted Headscale VPN control server: encrypted peer-to-peer connections, ACL access control and cross-device connectivity, with two deployment options to choose from — and control of your network always stays in your own hands.</p>
+</div>
+<div class="kpis">
+<div class="kpi"><b>100%</b><span>Control server stays in your home</span></div>
+<div class="kpi"><b>Peer-to-peer</b><span>Encrypted direct links between devices</span></div>
+<div class="kpi"><b>ACL</b><span>You decide who can reach whom</span></div>
+</div>
+
+<section id="why" data-nav="why"><h2>Why your home needs a VPN tailnet of its own</h2>
+<p>Your home fills up with devices: a NAS, cameras, a printer, Home Assistant, phones, laptops. To reach them safely from outside, the traditional answer is to open a pile of ports and remember a pile of IP addresses — and the risk of doing that is high.</p>
+<p>Tailscale and Headscale solve it with an encrypted peer-to-peer tailnet: devices connect to each other directly, with no public port to open and no IP address to remember. What Headscale adds is that control over "who can reach whom" comes back to you as well.</p>
+<div class="callout tip"><strong>The one-line pitch:</strong> "An ordinary VPN rents someone else's gateway; Headscale builds your own. The connection is just as smooth — the difference is who holds the keys."</div>
+</section>
+
+<section id="what" data-nav="what"><h2>What Headscale is</h2>
+<p>Headscale is an open source, self-hosted implementation of the Tailscale coordination server. It is the brain that manages the whole tailnet (who is on the network, who can reach whom, keys and DNS), but the actual traffic still runs over encrypted peer-to-peer tunnels between the devices themselves (WireGuard).</p>
+<table>
+<tr><th>What you need</th><th>What Headscale gives you</th></tr>
+<tr><td>A private tailnet across devices</td><td>Every device runs the Tailscale client and connects directly, with no public port to open</td></tr>
+<tr><td>Control over who can reach whom</td><td>ACL access control, minimal exposure</td></tr>
+<tr><td>Bring a whole subnet home</td><td>Subnet router and exit node (routing)</td></tr>
+<tr><td>Connect by memorable names</td><td>MagicDNS resolves device names</td></tr>
+<tr><td>Self-hosted control</td><td>The control server, the nodes and the policy are all in your hands</td></tr>
+</table>
+<p>WoowTech runs it inside a Home Assistant add-on, so it fits into your smart home and becomes part of the digital infrastructure of the house.</p>
+</section>
+<section id="abilities" data-nav="abilities"><h2>Four core capabilities</h2>
+<table>
+<tr><th>Capability</th><th>What the customer gets</th></tr>
+<tr><td><strong>Peer-to-peer encryption</strong></td><td>Devices connect directly, traffic does not pass through a third party, and there is no public port to open</td></tr>
+<tr><td><strong>ACL access control</strong></td><td>Decide exactly who can reach whom: minimal exposure, and no worry about opening something by mistake</td></tr>
+<tr><td><strong>Cross-device connectivity</strong></td><td>Phones, laptops, the NAS and Home Assistant all join the same private tailnet</td></tr>
+<tr><td><strong>Self-hosted control</strong></td><td>The control server, the node list and the policy all stay in your own home, not with a third party</td></tr>
+</table>
+</section>
+
+<section id="privacy" data-nav="privacy"><h2>The control server is in your home, and the network is yours to decide</h2>
+<ul>
+<li>The node list, the ACL and the keys all live on your own server, never on the official coordination server.</li>
+<li>You issue the preauth keys and can revoke them at any time, so you decide entirely who joins the tailnet.</li>
+<li>No monthly fee just because you have more devices; capacity comes down to your hardware and what you need.</li>
+</ul>
+<div class="callout warn"><strong>Honest caveat:</strong> the benefit of self-hosting is control; the price is maintenance. WoowTech takes care of deployment, updates, backups and security, so you get the control without carrying the maintenance burden.</div>
+</section>
+
+<section id="day" data-nav="day"><h2>A day with it</h2>
+<div class="steps">
+<div><h3>You are out of the house</h3><p>Your phone reaches Home Assistant and the NAS back home as smoothly as if you were on the local network, with no pile of ports to open.</p></div>
+<div><h3>The family shares it</h3><p>Each family member's device joins the tailnet, and the ACL allows only the connections that should exist, so everyone stays safe.</p></div>
+<div><h3>Bring your local network home</h3><p>On a trip, use an exit node to come out through your home IP address, or reach your whole local network through a subnet router.</p></div>
+</div>
+</section>
+<section id="compare" data-nav="compare"><h2>Two deployment options</h2>
+<table>
+<tr><th></th><th>Option A (self-hosted)</th><th>Option B (managed by WoowTech)</th></tr>
+<tr><td><strong>Best for</strong></td><td>Households that already run a Home Assistant host</td><td>People who would rather not maintain hardware and need it reachable from the internet at any time</td></tr>
+<tr><td><strong>Hardware</strong></td><td>Your existing Home Assistant host, with the add-on built into Home Assistant OS (HAOS)</td><td>A WoowTech cloud host, rented as a PaaS</td></tr>
+<tr><td><strong>Setup</strong></td><td>WoowTech sets it up for you (control server, ACL, backups)</td><td>WoowTech runs it for you</td></tr>
+<tr><td><strong>Maintenance</strong></td><td>You look after the hardware, with help from WoowTech</td><td>Fully managed by WoowTech</td></tr>
+</table>
+<div class="callout"><strong>Pricing:</strong> a one-time setup fee plus a charge that depends on the option you pick (node count, or a monthly subscription). Contact WoowTech or your reseller for a quote.</div>
+</section>
+
+<section id="faq" data-nav="faq"><h2>FAQ</h2>
+<div class="callout"><strong>Can a third party see my connections?</strong><br>No. The control server is in your home, and data traffic runs as a direct, encrypted peer-to-peer connection between devices; traffic falls back to a DERP relay only when a direct connection cannot be made.</div>
+<div class="callout"><strong>How is this different from an ordinary VPN?</strong><br>An ordinary VPN is usually a central gateway; Headscale is a peer-to-peer mesh in which devices connect to each other directly, which suits a private tailnet with many devices much better.</div>
+<div class="callout"><strong>Do I need to know how to set up a server?</strong><br>No. On your side you only install the Tailscale client and use the app; WoowTech takes care of deployment and maintenance.</div>
+<div class="callout"><strong>Is it secure?</strong><br>Encrypted peer-to-peer connections + minimal exposure through the ACL + self-hosted control. Guard the preauth keys and the ACL, and the security level is yours to set.</div>
+<div class="callout"><strong>Is there a limit on the number of devices?</strong><br>It depends on your option. Self-hosted, it comes down to your hardware, and you can scale it as you need.</div>
+</section>
+
+<section id="cta" data-nav="cta"><div class="cta"><h2>Next step</h2>
+<p>Want to see a self-hosted VPN control server working, and work out which option suits your home? Talk to WoowTech or your reseller and we will arrange a live demo and a recommendation on the option that fits.</p>
+<a class="btn" href="#">Contact WoowTech or your reseller</a>
+</div></section>
+
+<footer>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under CC BY 4.0. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them.</footer>
+</main>
+</div>
+</body>
+</html>
