@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 10 · Admin settings · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale admin settings: policy, DERP, users (namespaces) and version updates." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch10_admin.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 10 · Admin settings · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale admin settings: policy, DERP, users (namespaces) and version updates." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch10_admin.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 10 · Admin settings · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale admin settings: policy, DERP, users (namespaces) and version updates." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch10_admin.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch10_admin.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html" class="active">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">What admins manage</a>
+      <a href="#steps">Routine maintenance</a>
+      <a href="#derp">DERP relays</a>
+      <a href="#namespace">Users and groups</a>
+      <a href="#backup">Backup essentials</a>
+      <a href="#update">Version updates</a>
+      <a href="#troubleshoot">Admin problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 10</div>
+      <h1>Admin settings</h1>
+      <p class="lead">Get to know Headscale's admin settings: policy, DERP relays, users (namespaces) and version updates. By the end of this chapter, you'll be able to maintain the whole tailnet as its admin, keep your backups in order, and update the version safely.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">This chapter is for admins</h2>
+      <p>Headscale is the brain of the whole tailnet. Users joining, who can reach whom, the relay servers, version updates — an admin maintains all of it. This chapter is a practical reference for the admin; if you are an ordinary user, the concepts are enough.</p>
+      <div class="callout warn"><strong>Admin actions affect the whole tailnet:</strong> changing the policy, touching DERP, updating the version — every one of them affects all the devices that are already connected. Confirm the blast radius before you touch anything. When in doubt, leave it closed.</div>
+    </section>
+
+    <section id="concept" data-nav="What admins manage">
+      <h2 data-icon="concept">What admins manage</h2>
+      <p>Headscale's settings fall into a few areas, and you manage most of them through <code>config.yaml</code> and the command line (CLI):</p>
+      <table class="data-table">
+        <thead><tr><th>Area</th><th>What it covers</th><th>Common actions</th></tr></thead>
+        <tbody>
+          <tr><td>policy (ACL)</td><td>Who can reach whom, which ports are allowed</td><td>View, import, minimize access</td></tr>
+          <tr><td>DERP</td><td>The list of relay servers</td><td>Check the relays are usable, optionally self-host DERP</td></tr>
+          <tr><td>Users / namespaces</td><td>The grouping a device belongs to</td><td>Create, list, manage</td></tr>
+          <tr><td>Version updates</td><td>Upgrading Headscale itself</td><td>Read the release notes, back up, then update</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>The CLI is the main entry point:</strong> most Headscale admin actions are done with the <code>headscale</code> command line. Some environments have a Web UI, but the CLI is the most reliable and the best documented.</div>
+    </section>
+
+    <section id="steps" data-nav="Routine maintenance">
+      <h2 data-icon="steps">Five steps for a routine maintenance pass</h2>
+      <ol class="steps">
+        <li><h3>List the users and nodes</h3><p>Use <code>headscale users list</code> and <code>headscale nodes list</code> to take inventory of which accounts and devices are currently on the tailnet.</p></li>
+        <li><h3>Review the policy</h3><p>Use <code>headscale policy get</code> to look at the current access rules and confirm nothing is opened too wide (Chapters 7 and 11).</p></li>
+        <li><h3>Check the keys</h3><p>Use <code>headscale preauthkeys list</code> to take inventory of the keys that have not been used yet, and revoke the ones you do not need.</p></li>
+        <li><h3>Look at the service status</h3><p>Confirm the Headscale service is healthy, the DERP relays are reachable, and the log shows no recurring errors.</p></li>
+        <li><h3>Take a backup</h3><p>Include <code>config.yaml</code>, the policy and the database in a regular backup (covered later in this chapter).</p></li>
+      </ol>
+      <div class="callout warn"><strong>Least privilege:</strong> admins can change the policy and delete nodes. Do not hand out admin accounts freely; keep the number as small as you can.</div>
+    </section>
+
+    <section id="derp" data-nav="DERP relays">
+      <h2 data-icon="hardware">DERP relay servers</h2>
+      <p><strong>DERP</strong> (the relay protocol) is the fallback channel for when a direct peer-to-peer connection between two devices fails. Normally traffic takes a direct, encrypted peer-to-peer connection; it falls back to a DERP relay only when a direct connection cannot be made (for example symmetric NAT, or a firewall blocking it).</p>
+      <table class="data-table">
+        <thead><tr><th>DERP source</th><th>What it means</th><th>Watch out</th></tr></thead>
+        <tbody>
+          <tr><td>Built-in DERP</td><td>Headscale can embed one DERP server</td><td>Least work, but it is a single point and performance is limited</td></tr>
+          <tr><td>External DERP list</td><td>The config file points at a set of public DERP servers</td><td>Scales well, but traffic passes through a third-party relay</td></tr>
+          <tr><td>Self-hosted DERP</td><td>You run your own DERP server and add it to the list</td><td>Best control, but extra maintenance</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Rule of thumb:</strong> if two devices can connect directly, let them (fast, no relay in the path); rely on DERP only when they cannot. A relay is a fallback, not the normal path.</div>
+    </section>
+
+    <section id="namespace" data-nav="Users and groups">
+      <h2 data-icon="compare">Managing users (namespaces)</h2>
+      <p>Headscale groups devices by "user" (early versions called this a <strong>namespace</strong>). One user can own several nodes, and the policy can draw its lines by user too. Newer versions renamed namespace to user; the concept is the same.</p>
+      <ul>
+        <li>Create: <code>headscale users create &lt;name&gt;</code></li>
+        <li>List: <code>headscale users list</code></li>
+        <li>What it is for: keep "family devices" and "work devices" managed separately, each with its own keys and its own policy scope.</li>
+      </ul>
+      <div class="callout warn"><strong>Do not mix old and new names:</strong> command names changed between versions (namespace ↔ user), so before you run anything, check the docs for your version instead of copying an older tutorial.</div>
+    </section>
+
+    <section id="backup" data-nav="Backup essentials">
+      <h2 data-icon="restore">Back up policy, keys and config</h2>
+      <p>What you cannot lose in Headscale is not the nodes themselves, but these few things — rebuilding the whole tailnet depends on them:</p>
+      <ul>
+        <li><strong>config.yaml</strong>: the server settings (including DERP, what it listens on, and where the database lives).</li>
+        <li><strong>policy (ACL)</strong>: the access rules, the core of your security.</li>
+        <li><strong>Database</strong>: the state of users, nodes, keys and so on.</li>
+      </ul>
+      <div class="callout danger"><strong>Verify your backups:</strong> a backup you have never restored does not count. Run a restore drill on a regular schedule and confirm you really can rebuild the tailnet.</div>
+    </section>
+
+    <section id="update" data-nav="Version updates">
+      <h2 data-icon="advanced">Version updates</h2>
+      <ol class="steps">
+        <li><h3>Read the release notes first</h3><p>Always read the official release notes before you update, and watch for breaking changes between versions (for example renamed commands, or a changed config file format).</p></li>
+        <li><h3>Back up first</h3><p>Back up config.yaml, the policy and the database before you update. That is a prerequisite.</p></li>
+        <li><h3>Pick an off-peak window</h3><p>An update briefly interrupts the control server, so pick a time when nobody is using the tailnet.</p></li>
+        <li><h3>Verify after the update</h3><p>Once it is updated, list the nodes, test a connection between devices and confirm the policy is in effect.</p></li>
+      </ol>
+      <div class="callout warn"><strong>Do not skip versions:</strong> do not jump straight from a very old version to the latest; there may be several incompatible changes in between. Upgrade step by step, the way the official docs recommend.</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="Admin problems">
+      <h2 data-icon="troubleshoot">Common admin pitfalls</h2>
+      <ol class="steps">
+        <li><h3>The command is missing, or its usage changed</h3><p>Headscale commands evolve from version to version (namespace → user, acl → policy, for example). Check the docs for your version instead of copying an older tutorial.</p></li>
+        <li><h3>A device cannot reach DERP</h3><p>Confirm the DERP list is reachable and the firewall allows it; the log is the place to look first for clues about why the relay failed.</p></li>
+        <li><h3>The policy change did not take effect</h3><p>Confirm the policy was imported/saved correctly, and run the relevant checks again; some changes only take effect once the nodes resync.</p></li>
+        <li><h3>Nodes are offline after an update</h3><p>Usually a config or compatibility change. Read the release notes first, then check the log and the node status.</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">Admin FAQ</h2>
+      <details class="faq"><summary>Can ordinary users change these settings?</summary><div class="body">No. Policy, DERP, users and version updates are all admin-level. An ordinary user only deals with whether their own device can connect.</div></details>
+      <details class="faq"><summary>Are namespace and user the same thing?</summary><div class="body">Same concept: both are a way to group devices. It was called namespace early on and renamed to user in newer versions, and the commands changed with it, so check the docs for your version before you run anything.</div></details>
+      <details class="faq"><summary>Do I have to self-host DERP?</summary><div class="body">Not necessarily. In most cases the built-in or an external DERP is enough; self-host it only when you need more control and more privacy.</div></details>
+      <details class="faq"><summary>Will an update disconnect my devices?</summary><div class="body">The control server is briefly interrupted during an update, and peer-to-peer connections that are already established may be affected. Pick an off-peak window and back up first.</div></details>
+      <details class="faq"><summary>Does the database need its own backup?</summary><div class="body">Yes. Users, nodes and keys all live in the database, so backing up the config on its own is not enough. You need both.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale website</a></td><td>Config, commands and version notes</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>Release notes, config examples, issues</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/1232/derp-servers" rel="noopener">Tailscale: DERP servers</a></td><td>What a DERP relay is and how it works</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch9_dns.html">
+        <span class="label">← Previous</span>
+        <span class="title">09 · DNS and MagicDNS</span>
+      </a>
+      <a class="next" href="ch11_security.html">
+        <span class="label">Next →</span>
+        <span class="title">11 · Security and minimal exposure</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>

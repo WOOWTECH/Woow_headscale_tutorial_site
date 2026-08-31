@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 11 · Security and minimal exposure · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale security check: the entry point, preauth keys, the ACL and minimal exposure." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch11_security.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 11 · Security and minimal exposure · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale security check: the entry point, preauth keys, the ACL and minimal exposure." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch11_security.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 11 · Security and minimal exposure · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale security check: the entry point, preauth keys, the ACL and minimal exposure." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch11_security.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch11_security.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html" class="active">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">Three defenses</a>
+      <a href="#steps">Checklist</a>
+      <a href="#preauth">Key management</a>
+      <a href="#acl">Minimal ACL</a>
+      <a href="#nodes">Node inventory</a>
+      <a href="#troubleshoot">Security problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 11</div>
+      <h1>Security and minimal exposure</h1>
+      <p class="lead">Go through the control server's entry point, preauth keys, the ACL (access control list) and your node inventory in one systematic security check. By the end of this chapter, you'll know which habits keep a private tailnet safe, which "conveniences" are really over-exposure, and how to shrink the exposed surface to the minimum.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">A leaked key is the worst thing for a private tailnet</h2>
+      <p>The security of your whole Headscale tailnet rests on a few things: the control server's entry point, preauth keys, and the ACL rules. Miss any one of them and an outsider can slip into your "private" tailnet. Security is not something you set up once; it is a handful of habits you keep up over time.</p>
+      <div class="callout"><strong>Chapter task:</strong> Check the entry point, the keys, the ACL and the nodes one by one, and close down the exposure you do not need. Everything here is tightening only; nothing deletes data.</div>
+    </section>
+
+    <section id="concept" data-nav="Three defenses">
+      <h2 data-icon="concept">Three lines of defense</h2>
+      <table class="data-table">
+        <thead><tr><th>Line of defense</th><th>What it protects</th><th>Your responsibility</th></tr></thead>
+        <tbody>
+          <tr><td>Control server entry point</td><td>Who can reach the admin interface / API</td><td>Never exposed to the public internet, admins only</td></tr>
+          <tr><td>preauth key</td><td>Who can add a device to the tailnet</td><td>Treat it as a top secret and revoke it once it has been used</td></tr>
+          <tr><td>ACL (policy)</td><td>Which devices can reach which</td><td>Default deny; allow only the connections you actually need</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>The minimal-exposure principle:</strong> nothing is open by default. When you do open something, open it just enough to work, and keep the ability to revoke it.</div>
+    </section>
+
+    <section id="steps" data-nav="Checklist">
+      <h2 data-icon="steps">Six-step security checklist</h2>
+      <ol class="steps">
+        <li><h3>Check that the control server is not exposed</h3><p>Confirm the admin interface / API is reachable only from your local network or through a controlled entry point, and is not open to the whole internet.</p></li>
+        <li><h3>Take inventory of your preauth keys</h3><p>Run <code>headscale preauthkeys list</code> to see which keys are still unused, and revoke the ones you no longer need right away.</p></li>
+        <li><h3>Check that the ACL is minimal</h3><p>Run <code>headscale policy get</code> to review the rules and confirm it is not an "allow everything" policy, leaving only the connections you need (Chapter 7).</p></li>
+        <li><h3>Take inventory of your nodes</h3><p>Run <code>headscale nodes list</code> to see which devices are there; if there is a node you do not recognize, disable it first and investigate afterwards.</p></li>
+        <li><h3>Check keys and accounts</h3><p>Do not hand the admin account around, and if you use an API key, rotate it regularly too.</p></li>
+        <li><h3>Confirm backups are running</h3><p>Config, policy and the database should all be backed up on a schedule (Chapter 10), and you should have done a restore drill.</p></li>
+      </ol>
+      <div class="callout danger"><strong>If you see a suspicious node:</strong> when you spot a device or a key you do not recognize, revoke the key and disable the node first, then trace where it came from. Do not put it off.</div>
+    </section>
+
+    <section id="preauth" data-nav="Key management">
+      <h2 data-icon="security">Managing preauth keys</h2>
+      <p>A <strong>preauth key</strong> is the "pre-authorized key" that lets a device join the tailnet. Anyone who gets hold of it can attach a device to your tailnet. The rules for managing them:</p>
+      <ul>
+        <li><strong>One key per machine, revoked once used</strong>: do not use one key over and over, and do not share it.</li>
+        <li><strong>Never post it in the open</strong>: do not put a key in a group chat, and do not commit it to a repo.</li>
+        <li><strong>Take inventory regularly</strong>: revoke every key that is "already used" or "no longer needed".</li>
+      </ul>
+      <div class="callout warn"><strong>If a key leaks:</strong> revoke that key immediately, check whether any unknown node joined with it, and tighten the ACL if you have to.</div>
+    </section>
+
+    <section id="acl" data-nav="Minimal ACL">
+      <h2 data-icon="compare">Minimizing the ACL</h2>
+      <p>The ACL (policy) decides "who can reach whom, and on which ports". The safest mindset is "default deny, allow by whitelist":</p>
+      <table class="data-table">
+        <thead><tr><th>Approach</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td>Default deny</td><td>Anything not explicitly allowed is denied</td></tr>
+          <tr><td>Allow only the connections you need</td><td>For example, "the phone can reach HA at home, and nothing else"</td></tr>
+          <tr><td>Partition by user</td><td>Family devices and work devices stay apart, with no crossing over</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Verify after every change:</strong> once the ACL is edited, test from an actual device that "what should connect connects, and what should not does not". Do not just look at the config and assume it is right.</div>
+    </section>
+
+    <section id="nodes" data-nav="Node inventory">
+      <h2 data-icon="persons">Node inventory</h2>
+      <p>Listing your nodes on a regular basis is like taking stock of "who is on the home tailnet". The key points:</p>
+      <ul>
+        <li>You should recognize every node (its name, the device, what it is for).</li>
+        <li>A node you do not recognize: disable it first, then trace who added it and with which key.</li>
+        <li>A device that has not been online for a long time: confirm whether it is still needed, and remove it if it is not.</li>
+      </ul>
+      <div class="callout warn"><strong>Do not leak information in node names:</strong> use names you can recognize but that give nothing away, and keep full personal names, addresses and serial numbers out of a node name.</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="Security problems">
+      <h2 data-icon="troubleshoot">Common security pitfalls</h2>
+      <ol class="steps">
+        <li><h3>You suspect a key has leaked</h3><p>Revoke that key immediately, go through your nodes and the recent join records, and if you have to, tighten the ACL and tell your users.</p></li>
+        <li><h3>You find an unknown node</h3><p>Disable the node, revoke the suspicious key, then work out where it joined from.</p></li>
+        <li><h3>The ACL is too wide and you want to tighten it</h3><p>List the connections you actually need first, allow them one rule at a time and deny the rest; verify for real once the change is in.</p></li>
+        <li><h3>You are not sure whether something should be open</h3><p>The default is "do not open it". When in doubt, leave it closed.</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">Security FAQ</h2>
+      <details class="faq"><summary>What happens if someone scans the control server?</summary><div class="body">If the admin interface / API is exposed to the internet, an attacker can try to log in or to enumerate what is there. That is exactly why the control server stays on your local network and is never exposed to the public internet.</div></details>
+      <details class="faq"><summary>Can a preauth key be reused?</summary><div class="body">It can, but we strongly advise against it. One key per machine, revoked once used, is the safest pattern; sharing one key makes revoking and tracing harder.</div></details>
+      <details class="faq"><summary>What is the risk of an allow-everything ACL?</summary><div class="body">It means every device on the tailnet can reach every other one on every port. If any single device is compromised, the whole tailnet can fall with it. Keep it minimal.</div></details>
+      <details class="faq"><summary>How often should I take inventory?</summary><div class="body">We suggest a quick pass once a month (keys, nodes, ACL); when something is off (an unknown node, a suspected key leak), check right away.</div></details>
+      <details class="faq"><summary>Does the admin account need special protection?</summary><div class="body">Yes. Admins can change the policy and delete nodes. Use a strong password, do not hand it around, and rotate the API key regularly.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale website</a></td><td>Security-related settings and docs</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>preauth keys, policy, issues and best practices</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/1018/acls" rel="noopener">Tailscale: ACLs</a></td><td>ACL concepts and the principle of minimizing them</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch10_admin.html">
+        <span class="label">← Previous</span>
+        <span class="title">10 · Admin settings</span>
+      </a>
+      <a class="next" href="ch12_troubleshooting.html">
+        <span class="label">Next →</span>
+        <span class="title">12 · Troubleshooting and maintenance</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>

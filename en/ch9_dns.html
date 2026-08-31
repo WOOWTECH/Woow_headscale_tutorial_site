@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 9 · DNS and MagicDNS · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale DNS guide: MagicDNS, name resolution and custom DNS settings." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch9_dns.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 9 · DNS and MagicDNS · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale DNS guide: MagicDNS, name resolution and custom DNS settings." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch9_dns.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 9 · DNS and MagicDNS · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale DNS guide: MagicDNS, name resolution and custom DNS settings." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch9_dns.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch9_dns.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html" class="active">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">MagicDNS basics</a>
+      <a href="#steps">Usage steps</a>
+      <a href="#custom">Custom DNS</a>
+      <a href="#troubleshoot">DNS problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 9</div>
+      <h1>DNS and MagicDNS</h1>
+      <p class="lead">Connect to devices by name instead of memorizing IP addresses. By the end of this chapter, you'll understand how MagicDNS resolves a node name into a tailnet IP address, and how to set up custom DNS and split DNS.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">Names beat IP addresses</h2>
+      <p>Once a tailnet holds more than a few devices, remembering IP addresses stops being practical. MagicDNS lets you connect straight to a device by its name (such as <code>nas</code>, <code>living-room</code>), exactly as you would with an IP address, but far easier to remember.</p>
+      <div class="callout"><strong>Chapter task:</strong> understand how MagicDNS works, how to connect by name, and what custom DNS is for.</div>
+    </section>
+
+    <section id="concept" data-nav="MagicDNS basics">
+      <h2 data-icon="concept">What MagicDNS is</h2>
+      <p>MagicDNS is the "name resolution" service the control server provides: it gives every node a name you can remember, and resolves that name into a tailnet IP address. Ping <code>nas</code> and you are pinging that device.</p>
+      <table class="data-table">
+        <thead><tr><th>Concept</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td>Node name</td><td>The hostname each device carries inside the tailnet</td></tr>
+          <tr><td>MagicDNS</td><td>The mechanism that resolves a name into a Tailscale IP address</td></tr>
+          <tr><td>split DNS</td><td>Hands only certain domains to a specific DNS server for resolution</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>The control server must see the name:</strong> the node name is set on the client side; the control server records it and serves it to MagicDNS for resolution.</div>
+    </section>
+
+    <section id="steps" data-nav="Usage steps">
+      <h2 data-icon="steps">Five steps to connect by name</h2>
+      <ol class="steps">
+        <li><h3>Confirm MagicDNS is enabled</h3><p>In the control server's DNS settings, confirm that MagicDNS is on (the relevant Headscale settings).</p></li>
+        <li><h3>Give each device a proper name</h3><p>Give every device a clear hostname (such as <code>nas</code>, or <code>living-room</code> for the living room), not a default name that is hard to remember.</p></li>
+        <li><h3>Connect by name</h3><p>From another node, run <code>ping nas</code> or <code>ssh living-room</code> (the living-room host) and see whether the name resolves correctly.</p></li>
+        <li><h3>Set up split DNS if you need it</h3><p>Send resolution for your company's local network, or for particular domains, to a specific DNS server, and leave everything else on the default.</p></li>
+        <li><h3>Check for clashes</h3><p>Do not let a node name clash with a hostname that already exists on your local network, so resolution stays unambiguous.</p></li>
+      </ol>
+    </section>
+
+    <section id="custom" data-nav="Custom DNS">
+      <h2 data-icon="network">Custom DNS and split DNS</h2>
+      <ul>
+        <li><strong>Custom DNS</strong>: the DNS server you tell the devices in the tailnet to use (a Pi-hole or AdGuard on your local network, for example).</li>
+        <li><strong>split DNS</strong>: hands only "certain domains" to a specific server for resolution, for example <code>internal.example.com</code> on your company's local network, and leaves the rest of the traffic untouched.</li>
+        <li><strong>What it is for</strong>: ad blocking, name resolution for services on your local network, and keeping resolution policies for different domains apart.</li>
+      </ul>
+      <div class="callout warn"><strong>DNS changes affect every node:</strong> DNS settings live at the control server level, so a change reaches the whole tailnet. Confirm before you change anything, and keep a backup.</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="DNS problems">
+      <h2 data-icon="troubleshoot">Common DNS pitfalls</h2>
+      <ol class="steps">
+        <li><h3>A name does not resolve</h3><p>Check that MagicDNS is enabled, that no two node names clash, and that the other node is online.</p></li>
+        <li><h3>A name resolves to the wrong device</h3><p>Two nodes share a name, or an old name has not been updated. Check them and rename.</p></li>
+        <li><h3>Custom DNS has no effect</h3><p>Confirm the setting has been applied and refresh DNS on the node; some changes need the node to reconnect.</p></li>
+        <li><h3>A name clashes with a local service</h3><p>A node name collides with a hostname on your local network. Switch to a name that does not clash, or adjust split DNS.</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">DNS FAQ</h2>
+      <details class="faq"><summary>Is MagicDNS required?</summary><div class="body">No. You can connect by IP address alone. But connecting by name is far more convenient, so we recommend turning it on.</div></details>
+      <details class="faq"><summary>Can a node name use Chinese characters?</summary><div class="body">That depends on what the client and the control server support. Most environments handle it, but an alphanumeric hostname is the safer choice for compatibility.</div></details>
+      <details class="faq"><summary>How is split DNS different from ordinary DNS?</summary><div class="body">Ordinary DNS sends everything to the same server; split DNS routes only certain domains to a specific server and leaves the rest as it was.</div></details>
+      <details class="faq"><summary>Can I hook up a Pi-hole to block ads?</summary><div class="body">Yes. Point the tailnet's custom DNS at the Pi-hole and every node's resolution goes through it, so ads are blocked.</div></details>
+      <details class="faq"><summary>After a rename, does the old name still work?</summary><div class="body">Once you rename a node the old name usually stops working, so connect with the new one; some caches may take a while to update.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://tailscale.com/kb/1081/magicdns" rel="noopener">Tailscale: MagicDNS</a></td><td>How name resolution works</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>DNS settings and implementation</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch8_routes.html">
+        <span class="label">← Previous</span>
+        <span class="title">08 · Routes and exit nodes</span>
+      </a>
+      <a class="next" href="ch10_admin.html">
+        <span class="label">Next →</span>
+        <span class="title">10 · Admin settings</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>

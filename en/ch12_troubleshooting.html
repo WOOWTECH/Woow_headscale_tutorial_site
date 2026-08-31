@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 12 · Troubleshooting and maintenance · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale troubleshooting guide: connections, offline nodes, DERP, updates and backups." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch12_troubleshooting.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 12 · Troubleshooting and maintenance · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale troubleshooting guide: connections, offline nodes, DERP, updates and backups." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch12_troubleshooting.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 12 · Troubleshooting and maintenance · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale troubleshooting guide: connections, offline nodes, DERP, updates and backups." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch12_troubleshooting.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch12_troubleshooting.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html" class="active">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">Layered approach</a>
+      <a href="#steps">Troubleshooting steps</a>
+      <a href="#cases">Common cases</a>
+      <a href="#update">Updates and backups</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 12</div>
+      <h1>Troubleshooting and maintenance</h1>
+      <p class="lead">A device that will not connect, a node that is offline, DERP relays, updates and backups — work through them layer by layer, in order. By the end of this chapter, you'll stop gambling on "let's just restart it and see" and instead find the problem systematically and leave a record someone else can pick up.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">Find evidence before you restart anything</h2>
+      <p>When something goes wrong on the tailnet, the most common mistake is to gamble on "restart it" or "reinstall it", which washes away the clues. The right approach is to record the symptom first, work through the layers, and only act once you have evidence.</p>
+      <div class="callout"><strong>Chapter task:</strong> learn the layered troubleshooting process, and handle common problems — connections, offline nodes, DERP, updates and backups.</div>
+    </section>
+
+    <section id="concept" data-nav="Layered approach">
+      <h2 data-icon="concept">Work through the layers, outside in</h2>
+      <table class="data-table">
+        <thead><tr><th>Layer</th><th>What to check</th><th>Typical signal</th></tr></thead>
+        <tbody>
+          <tr><td>Device and client</td><td>Tailscale client status, the network</td><td>Only one device has the problem</td></tr>
+          <tr><td>Connection to the control server</td><td>Whether the device can reach Headscale</td><td>Status shows offline, cannot log in</td></tr>
+          <tr><td>Connections between nodes</td><td>Whether a direct peer-to-peer connection was made, DERP relay</td><td>ping fails, latency is high</td></tr>
+          <tr><td>Control server settings</td><td>ACL, routes, DNS, keys</td><td>It only broke after a policy change</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Narrow the scope first:</strong> asking "is it only this machine, or every node?" immediately pins the problem to "the device side" or "the control server".</div>
+    </section>
+
+    <section id="steps" data-nav="Troubleshooting steps">
+      <h2 data-icon="steps">Six steps to troubleshoot</h2>
+      <ol class="steps">
+        <li><h3>Record the symptom and the time</h3><p>Write down "when it happened, what you were doing, what error you saw". A timeline is the best clue you have.</p></li>
+        <li><h3>Confirm the scope</h3><p>Try another device, or ask someone else to try, and decide whether it is one device or the whole tailnet.</p></li>
+        <li><h3>Check the client status</h3><p>Run <code>tailscale status</code> on the device and see whether the node is online and its IP address looks right.</p></li>
+        <li><h3>Check the control server</h3><p>Use the Headscale commands to look at the node list, the policy and the routes, and find the first clear error.</p></li>
+        <li><h3>Make the smallest fix</h3><p>Change one variable at a time, and verify after each change. Do not touch several settings at once.</p></li>
+        <li><h3>Leave a record</h3><p>Write down "symptom → diagnosis → action → result", so it is easy to hand over later, or to compare against if the problem comes back.</p></li>
+      </ol>
+    </section>
+
+    <section id="cases" data-nav="Common cases">
+      <h2 data-icon="compare">Symptom quick reference</h2>
+      <table class="data-table">
+        <thead><tr><th>Symptom</th><th>Likely cause</th><th>First thing to do</th></tr></thead>
+        <tbody>
+          <tr><td>The device shows as offline</td><td>The client is not running, or cannot reach the control server</td><td>Restart the client, check the network and the connection to the control server</td></tr>
+          <tr><td>ping fails</td><td>The ACL is blocking it, the direct connection failed, or the node is offline</td><td>Check the ACL, and see whether the traffic is going through a DERP relay</td></tr>
+          <tr><td>Latency is very high</td><td>The direct connection failed and the traffic goes through a DERP relay</td><td>Check the NAT at both ends and the DERP settings</td></tr>
+          <tr><td>A new device will not join</td><td>The preauth key has expired or is no longer valid</td><td>Generate a new key, check its expiry time</td></tr>
+          <tr><td>Connections fail after a policy change</td><td>An ACL rule is wrong or too strict</td><td>Check the policy syntax and the rules</td></tr>
+          <tr><td>Something broke after an update</td><td>Versions are incompatible, or a setting changed</td><td>Read the release notes, restore from backup</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="update" data-nav="Updates and backups">
+      <h2 data-icon="restore">Updates and backups</h2>
+      <p><strong>Updates</strong>:</p>
+      <ul>
+        <li>Read the release notes first, and watch for breaking changes between versions.</li>
+        <li>Back up before you update, and pick an off-peak window.</li>
+        <li>After the update, confirm one by one that the nodes can still connect and that the ACL and the routes still work.</li>
+      </ul>
+      <p><strong>Backups</strong>: the things a self-hosted control server cannot lose are settings like "the policy, the preauth keys, the nodes and the keys". Back them up on a schedule, so you can rebuild the tailnet if something happens to the server.</p>
+      <div class="callout danger"><strong>No backup, no update:</strong> "finding out it is broken only after the update" is the most painful case. A backup is the precondition for an update.</div>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">Troubleshooting FAQ</h2>
+      <details class="faq"><summary>How do I stop a problem from coming back?</summary><div class="body">Keep the "symptom → diagnosis → action → result" record from last time. When it happens again, compare against it — that usually locates the problem quickly.</div></details>
+      <details class="faq"><summary>Can I restart the control server myself?</summary><div class="body">It depends on whether you have access to the server. Ordinary users do not have it, and should not restart the server on a whim; ask the admin to handle it, and record the symptom first.</div></details>
+      <details class="faq"><summary>What is a DERP relay, and do I have to have one?</summary><div class="body">When two devices cannot make a direct peer-to-peer connection, a DERP relay forwards the traffic for them. If they can connect directly, it is not used; it is the fallback for when the direct connection fails.</div></details>
+      <details class="faq"><summary>How do I report a problem to the admin?</summary><div class="body">Include "the time, what you did, the error message (redact anything sensitive), and the blast radius (just me, or everyone)". The more complete it is, the easier it is to handle.</div></details>
+      <details class="faq"><summary>The interface or the commands changed after an update?</summary><div class="body">Versions change; that is normal. Read the official release notes and docs first. This tutorial reflects the version current at the time of writing, and where they differ, the latest one wins.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://github.com/juanfont/headscale/releases" rel="noopener">Headscale Releases</a></td><td>Version changelogs and breaking changes</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale knowledge base</a></td><td>Client-side troubleshooting and DERP</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale/issues" rel="noopener">Headscale Issues</a></td><td>Known issues and community fixes</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch11_security.html">
+        <span class="label">← Previous</span>
+        <span class="title">11 · Security and minimal exposure</span>
+      </a>
+      <a class="next" href="tutorial.html">
+        <span class="label">Contents →</span>
+        <span class="title">You made it — all chapters done!</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>
