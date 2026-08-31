@@ -49,8 +49,8 @@ const ALL_FILES = [...new Set(['index.html', CATALOG, ...PAGES, ...HUB_PAGES])];
 const whitelist = i18n.readJSON(path.join(REPO_ROOT, 'i18n', 'code-translate.json'), { allow: [] });
 const today = new Date().toISOString().slice(0, 10);
 
-// 一-鿿 基本區、㐀-䶿 擴充 A、豈-﫿 相容區。用轉義寫，避免複製時被正規化成別的碼位。
-const HAN = /[㐀-䶿一-鿿豈-﫿]/;
+// 一-鿿 基本區、㐀-䶿 擴充 A、豈-﫿 相容區。用轉義寫，避免複製時被正規化成別的碼位。
+const HAN = /[㐀-䶿一-鿿豈-﫿]/;
 const errors = [];
 const warnings = [];
 let ledgerChanged = false;
