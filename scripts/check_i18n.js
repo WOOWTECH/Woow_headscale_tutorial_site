@@ -46,7 +46,7 @@ const ALL_FILES = [...new Set(['index.html', CATALOG, ...PAGES, ...HUB_PAGES])];
 const whitelist = i18n.readJSON(path.join(REPO_ROOT, 'i18n', 'code-translate.json'), { allow: [] });
 const today = new Date().toISOString().slice(0, 10);
 
-const HAN = /[㐀-䶿一-鿿豈-﫿]/;
+const HAN = /[㐀-䶿一-鿿豈-﫿]/;
 const errors = [];
 const warnings = [];
 let ledgerChanged = false;
@@ -239,7 +239,7 @@ for (const [code, loc] of Object.entries(locales)) {
         if (!noindex) err(`${code}/${f}: [F] pending 頁必須 noindex（重跑 SITE_ROOT=${code} build_nav.js）`);
         if (inMap && f !== CATALOG) err(`${code}/${f}: [F] pending 頁不得進 sitemap`);
       } else {
-        if (noindex) err(`${code}/${f}: [F] 已翻頁却 noindex`);
+        if (noindex) err(`${code}/${f}: [F] 已翻頁卻 noindex`);
         if (!inMap) err(`${code}/${f}: [F] 已翻頁不在 sitemap`);
         // hreflang 是全有或全無：少一邊 return tag，整組會被 Google 忽略，所以兩邊都驗。
         if (loc.published) {

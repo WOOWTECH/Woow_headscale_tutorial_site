@@ -75,6 +75,10 @@ const unesc = (s) =>
 const stripTags = (s) => s.replace(/<[^>]+>/g, '');
 const url = (rel) => `${site.baseUrl.replace(/\/$/, '')}/${rel === 'index.html' ? '' : rel}`;
 const status = (file) => (IS_PRIMARY ? 'complete' : i18n.pageStatus(LEDGER, LOCALE, file));
+// i18n.css 只在真的要用時才載入：建置其他語系的 root，或 zh 已經要顯示語言切換／hreflang。
+// 這樣單語系階段的 zh 產物完全不會多出一行。
+const NEEDS_I18N_CSS = !IS_PRIMARY || Object.entries(LOCALES).some(([k, v]) => !k.startsWith('_') && v.published);
+const I18N_CSS = NEEDS_I18N_CSS ? `\n  <link rel="stylesheet" href="${site.assetBase || ''}assets/css/i18n.css" />` : '';
 
 /* ---------------------------------------------------------------- head --- */
 
@@ -131,7 +135,7 @@ function buildHead(page, html) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="${FONTS_URL}" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
-  <link rel="stylesheet" href="${ASSET_BASE}assets/css/style.css" />
+  <link rel="stylesheet" href="${ASSET_BASE}assets/css/style.css" />${I18N_CSS}
 </head>`;
 }
 
@@ -147,6 +151,7 @@ function build404Head() {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="${FONTS_URL}" />
   <link rel="stylesheet" href="${ASSET_BASE_URL}/assets/css/style.css" />
+  <link rel="stylesheet" href="${ASSET_BASE_URL}/assets/css/i18n.css" />
 </head>`;
 }
 
@@ -435,6 +440,7 @@ function buildHubIndex() {
   const original = fs.readFileSync(p, 'utf8');
   let html = setHtmlLang(original);
   html = applyRobots(html, status('index.html'));
+  html = applyI18nCss(html);
   const alt = alternateLinks('index.html');
   html = html.replace(/\n?\s*<!-- i18n:alternates -->[\s\S]*?<!-- \/i18n:alternates -->/, '');
   if (alt) {
@@ -464,7 +470,16 @@ function buildHubPage(file) {
   const original = fs.readFileSync(p, 'utf8');
   let html = setHtmlLang(original);
   html = applyRobots(html, status(file));
+  html = applyI18nCss(html);
   return { file, path: p, original, html };
+}
+
+// 手寫頁的 <head> 不歸 generator 管，只補／收一行 i18n.css（用註解夾住，可反覆執行）
+function applyI18nCss(html) {
+  html = html.replace(/\n?\s*<!-- i18n:css -->[\s\S]*?<!-- \/i18n:css -->/, '');
+  if (!NEEDS_I18N_CSS) return html;
+  const link = `<link rel="stylesheet" href="${site.assetBase || ''}assets/css/i18n.css" />`;
+  return html.replace(/([ \t]*)(<link rel="stylesheet" href="[^"]*assets\/css\/style\.css" \/>)/, (m, ws, tag) => `${ws}${tag}\n${ws}<!-- i18n:css -->${link}<!-- /i18n:css -->`);
 }
 
 function applyRobots(html, st) {
