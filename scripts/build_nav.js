@@ -75,6 +75,10 @@ const unesc = (s) =>
 const stripTags = (s) => s.replace(/<[^>]+>/g, '');
 const url = (rel) => `${site.baseUrl.replace(/\/$/, '')}/${rel === 'index.html' ? '' : rel}`;
 const status = (file) => (IS_PRIMARY ? 'complete' : i18n.pageStatus(LEDGER, LOCALE, file));
+// published 是「上線開關」，跟「翻完了沒」是兩件事：翻完但還沒上線的語系整個 root 維持 noindex、
+// 不進 sitemap、不發 hreflang，zh 那邊也不會出現語言切換——所以 zh 產物在上線前逐位元不變。
+const LOCALE_LIVE = IS_PRIMARY || !!(LOCALES[LOCALE] && LOCALES[LOCALE].published);
+const indexable = (file) => LOCALE_LIVE && status(file) !== 'pending';
 // i18n.css 只在真的要用時才載入：建置其他語系的 root，或 zh 已經要顯示語言切換／hreflang。
 // 這樣單語系階段的 zh 產物完全不會多出一行。
 const NEEDS_I18N_CSS = !IS_PRIMARY || Object.entries(LOCALES).some(([k, v]) => !k.startsWith('_') && v.published);
@@ -107,7 +111,7 @@ function buildHead(page, html) {
   const desc = page.description || site.description;
   const firstImg = (html.match(/<img[^>]+src="(?:\.\.\/)?(assets\/screenshots\/[^"]+)"/) || [])[1];
   const ogImage = `${ASSET_BASE_URL}/${firstImg || site.ogImage}`;
-  const robots = status(page.file) === 'pending' ? 'noindex, follow' : 'index, follow, max-image-preview:large';
+  const robots = indexable(page.file) ? 'index, follow, max-image-preview:large' : 'noindex, follow';
   const ogAlt = (site.localeAlternate || []).map((l) => `\n  <meta property="og:locale:alternate" content="${l}" />`).join('');
 
   return `<head>
@@ -429,6 +433,7 @@ ${g.items.map(card).join('\n')}
     html = html.replace(/(\s*)<\/main>/, `\n\n    ${footer}\n  </main>`);
   }
 
+  html = applyLangSwitch(html, CATALOG);
   return { file: CATALOG, path: p, original, html };
 }
 
@@ -439,27 +444,11 @@ function buildHubIndex() {
   if (!fs.existsSync(p)) return null;
   const original = fs.readFileSync(p, 'utf8');
   let html = setHtmlLang(original);
-  html = applyRobots(html, status('index.html'));
+  html = applyRobots(html, 'index.html');
   html = applyI18nCss(html);
-  const alt = alternateLinks('index.html');
-  html = html.replace(/\n?\s*<!-- i18n:alternates -->[\s\S]*?<!-- \/i18n:alternates -->/, '');
-  if (alt) {
-    html = html.replace(/(<link rel="canonical"[^>]*\/>)/, (m) => `${m}\n  <!-- i18n:alternates -->${alt}\n  <!-- /i18n:alternates -->`);
-  }
-  const sw = i18n.langSwitch({
-    isPrimary: IS_PRIMARY,
-    locale: LOCALE,
-    page: 'index.html',
-    primaryBase: PRIMARY_BASE,
-    locales: LOCALES,
-    strings: S,
-    ledger: LEDGER,
-    catalog: CATALOG,
-  });
-  html = html.replace(/\n?\s*<!-- i18n:switch -->[\s\S]*?<!-- \/i18n:switch -->/, '');
-  if (sw) {
-    html = html.replace(/(<div class="hero">)/, (m) => `${m}\n      <!-- i18n:switch -->\n      ${sw}\n      <!-- /i18n:switch -->`);
-  }
+  html = applyLocaleUrls(html, 'index.html');
+  html = applyAlternates(html, 'index.html');
+  html = applyLangSwitch(html, 'index.html');
   return { file: 'index.html', path: p, original, html };
 }
 
@@ -469,8 +458,11 @@ function buildHubPage(file) {
   if (!fs.existsSync(p)) return null;
   const original = fs.readFileSync(p, 'utf8');
   let html = setHtmlLang(original);
-  html = applyRobots(html, status(file));
+  html = applyRobots(html, file);
   html = applyI18nCss(html);
+  html = applyLocaleUrls(html, file);
+  html = applyAlternates(html, file);
+  html = applyLangSwitch(html, file);
   return { file, path: p, original, html };
 }
 
@@ -479,12 +471,68 @@ function applyI18nCss(html) {
   html = html.replace(/\n?\s*<!-- i18n:css -->[\s\S]*?<!-- \/i18n:css -->/, '');
   if (!NEEDS_I18N_CSS) return html;
   const link = `<link rel="stylesheet" href="${site.assetBase || ''}assets/css/i18n.css" />`;
-  return html.replace(/([ \t]*)(<link rel="stylesheet" href="[^"]*assets\/css\/style\.css" \/>)/, (m, ws, tag) => `${ws}${tag}\n${ws}<!-- i18n:css -->${link}<!-- /i18n:css -->`);
+  if (/<link rel="stylesheet" href="[^"]*assets\/css\/style\.css" \/>/.test(html)) {
+    return html.replace(/([ \t]*)(<link rel="stylesheet" href="[^"]*assets\/css\/style\.css" \/>)/, (m, ws, tag) => `${ws}${tag}\n${ws}<!-- i18n:css -->${link}<!-- /i18n:css -->`);
+  }
+  // 自帶樣式的單檔手冊沒有 style.css 可以掛，改掛在 </head> 前；i18n.css 的 token 都有 fallback。
+  return html.replace(/([ \t]*)<\/head>/, (m, ws) => `${ws}<!-- i18n:css -->${link}<!-- /i18n:css -->\n${ws}</head>`);
 }
 
-function applyRobots(html, st) {
+// 手寫頁的 <head> 文案不歸 generator 管，但「這一頁住在哪個站根」是結構不是翻譯：
+// 鏡像出來的 en/ 會原封不動沿用 zh 的 canonical／og:url，等於整個英文站自己宣告 canonical 是中文頁。
+// 這些網址一律由 generator 依 chapters.json 改寫，人不用記，也不會翻譯時被漏掉。
+function applyLocaleUrls(html, file) {
   if (IS_PRIMARY) return html;
-  const want = st === 'pending' ? 'noindex, follow' : 'index, follow';
+  const self = url(file);
+  html = html.replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${self}$2`);
+  html = html.replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${self}$2`);
+  html = html.replace(/(<meta property="og:locale" content=")[^"]*(")/, `$1${site.locale}$2`);
+  html = html.replace(/(<meta property="og:image" content=")[^"]*(")/, `$1${ASSET_BASE_URL}/${site.ogImage}$2`);
+  html = html.replace(/(<meta name="twitter:image" content=")[^"]*(")/, `$1${ASSET_BASE_URL}/${site.ogImage}$2`);
+  // 字型與授權條款也跟著語系走：中文站要 Noto Sans TC、英文站不用；CC 條款有各語言的 deed 頁。
+  html = html.replace(/(<link rel="stylesheet" href=")https:\/\/fonts\.googleapis\.com\/css2[^"]*(")/, `$1${FONTS_URL}$2`);
+  html = html.replace(/(<a rel="license noopener" href=")[^"]*(")/, `$1${site.license.url}$2`);
+  // og:locale:alternate 用註解夾住，反覆執行不會疊加
+  html = html.replace(/\n?\s*<!-- i18n:oglocale -->[\s\S]*?<!-- \/i18n:oglocale -->/, '');
+  const ogAlt = (site.localeAlternate || []).map((l) => `<meta property="og:locale:alternate" content="${l}" />`).join('');
+  if (ogAlt) {
+    html = html.replace(/([ \t]*)(<meta property="og:locale" content="[^"]*" \/>)/, (m, ws, tag) => `${ws}${tag}\n${ws}<!-- i18n:oglocale -->${ogAlt}<!-- /i18n:oglocale -->`);
+  }
+  return html;
+}
+
+// hreflang：手寫頁也要有，缺一邊 Google 會整組忽略。用註解夾住，未發布時 alternates() 回空陣列，zh 產物不動。
+function applyAlternates(html, file) {
+  html = html.replace(/\n?\s*<!-- i18n:alternates -->[\s\S]*?<!-- \/i18n:alternates -->/, '');
+  const alt = alternateLinks(file);
+  if (!alt) return html;
+  return html.replace(/(<link rel="canonical"[^>]*\/>)/, (m) => `${m}\n  <!-- i18n:alternates -->${alt}\n  <!-- /i18n:alternates -->`);
+}
+
+// 手寫頁（資源總覽、三本手冊）與目錄頁的語言切換：章節頁的側欄是 generator 產的，這幾頁不是，
+// 所以用註解夾住單獨插一塊。未發布語系時 langSwitch() 回空字串，zh 產物不動。
+function applyLangSwitch(html, file) {
+  html = html.replace(/\n?\s*<!-- i18n:switch -->[\s\S]*?<!-- \/i18n:switch -->/, '');
+  const sw = i18n.langSwitch({
+    isPrimary: IS_PRIMARY,
+    locale: LOCALE,
+    page: file,
+    primaryBase: PRIMARY_BASE,
+    locales: LOCALES,
+    strings: S,
+    ledger: LEDGER,
+    catalog: CATALOG,
+  });
+  if (!sw) return html;
+  if (/<a class="hub-link"/.test(html)) {
+    return html.replace(/([ \t]*)(<a class="hub-link")/, (m, ws, tag) => `${ws}<!-- i18n:switch -->${sw}<!-- /i18n:switch -->\n${ws}${tag}`);
+  }
+  return html.replace(/(<div class="hero">)/, (m) => `${m}\n      <!-- i18n:switch -->\n      ${sw}\n      <!-- /i18n:switch -->`);
+}
+
+function applyRobots(html, file) {
+  if (IS_PRIMARY) return html;
+  const want = indexable(file) ? 'index, follow' : 'noindex, follow';
   if (/<meta name="robots" content="[^"]*"\s*\/?>/.test(html)) {
     return html.replace(/<meta name="robots" content="[^"]*"(\s*\/?>)/, `<meta name="robots" content="${want}"$1`);
   }
@@ -505,7 +553,7 @@ function buildSitemap() {
   const files = ['index.html'];
   if (CATALOG !== 'index.html') files.push(CATALOG);
   files.push(...pages.map((p) => p.file), ...HUB_PAGES);
-  const listed = files.filter((f) => status(f) !== 'pending');
+  const listed = files.filter(indexable);
   const entries = listed.map((f) => {
     const rel = SUBDIR ? `${SUBDIR}/${f}` : f;
     const lastmod = i18n.gitLastMod(REPO_ROOT, rel) || fallback;
