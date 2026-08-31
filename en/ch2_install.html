@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 2 · Install Headscale · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Home Assistant Headscale add-on install guide: add the repository, install, start, and get ready for the first open." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch2_install.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 2 · Install Headscale · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Home Assistant Headscale add-on install guide: add the repository, install, start, and get ready for the first open." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch2_install.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 2 · Install Headscale · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Home Assistant Headscale add-on install guide: add the repository, install, start, and get ready for the first open." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch2_install.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch2_install.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html" class="active">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">Add-on basics</a>
+      <a href="#steps">Install steps</a>
+      <a href="#config">Config options</a>
+      <a href="#test">Install check</a>
+      <a href="#troubleshoot">Install problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 2</div>
+      <h1>Install Headscale</h1>
+      <p class="lead">Install the Headscale control server into Home Assistant and learn what state it is in right after the install. By the end of this chapter, you'll know what an add-on is, what it is busy doing while it starts, and what to check before you open it for the first time.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">Get the control server running first</h2>
+      <p>Headscale is the brain of the whole tailnet. It has to be installed and running before you can create users, join devices or set up an ACL. On Home Assistant (HA), the simplest way is to install it as an <strong>add-on</strong>, so you do not have to build a server, a database and certificates yourself.</p>
+      <p>This chapter gets the add-on installed and started, and explains what it is doing in the background on that first start, so you do not conclude that it "will not start" when it is only still initializing.</p>
+      <div class="callout"><strong>Chapter task:</strong> Add the repository, install the add-on, start it, and confirm the status is normal. Creating users for real starts in Chapter 4.</div>
+    </section>
+
+    <section id="concept" data-nav="Add-on basics">
+      <h2 data-icon="concept">What an add-on is and what it saves you</h2>
+      <p>Think of an add-on as a "one-click service bundle". Headscale itself needs a database, a config file, an externally reachable port and so on; the add-on packages all of that into one container. All you do is press install, and it prepares everything that needs preparing.</p>
+      <table class="data-table">
+        <thead><tr><th>What you skip</th><th>What the add-on handles</th></tr></thead>
+        <tbody>
+          <tr><td>Installing a database and dependencies</td><td>Already packaged inside the container</td></tr>
+          <tr><td>Writing a config file and generating keys</td><td>The first start initializes them automatically</td></tr>
+          <tr><td>Handling inbound connections</td><td>Works with Cloudflare Tunnel (this site's setup) for secure access from outside</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>This site's setup:</strong> The machine you are going to use has already been installed and started by WoowTech. If you only need to use it, you can skip the install and go straight to Chapter 3 to get to know the control interface.</div>
+    </section>
+
+    <section id="steps" data-nav="Install steps">
+      <h2 data-icon="steps">Six steps to install Headscale</h2>
+      <ol class="steps">
+        <li><h3>Open the HA add-on store</h3><p>In the Home Assistant sidebar, go to "Settings → Add-ons" and open the add-on store.</p></li>
+        <li><h3>Add the WoowTech repository</h3><p>In the store's top-right menu, choose "Repositories", paste in the WoowTech repository URL and add it.</p></li>
+        <li><h3>Find the Headscale add-on and install it</h3><p>Refresh the store, find Headscale, open it and press "Install". The first install downloads the image, which takes a few minutes; do not close it partway through.</p></li>
+        <li><h3>Review the configuration options</h3><p>After the install, open the "Configuration" tab and check options such as the data directory and the external domain. The defaults are fine the first time; adjust them later as you need to.</p></li>
+        <li><h3>Start the add-on</h3><p>Go back to the "Info" tab and press "Start". The first start initializes the database and generates the config and keys, so it takes a while.</p></li>
+        <li><h3>Check the status and the log</h3><p>Once it is started, open the "Log" tab; a message saying initialization is complete means it is ready. When the status shows as running, you can move on to Chapter 3.</p></li>
+      </ol>
+      <div class="callout warn"><strong>First start takes a while:</strong> The first start has to build the database and generate the config and keys, which can take several minutes. As long as the log is still moving, it is working; do not keep restarting it. Note: these steps assume the WoowTech add-on repository on Home Assistant. If you run Headscale outside Home Assistant, use the official Docker or package install instead; everything after this chapter still applies.</div>
+    </section>
+
+    <section id="config" data-nav="Config options">
+      <h2 data-icon="advanced">Settings worth knowing</h2>
+      <table class="data-table">
+        <thead><tr><th>Option</th><th>What it means</th><th>Watch out</th></tr></thead>
+        <tbody>
+          <tr><td>Data directory</td><td>Where the database and the config are stored</td><td>Include it in your backups (Appendix B)</td></tr>
+          <tr><td>External domain</td><td>The address clients use to reach the control server</td><td>Must match your public URL</td></tr>
+          <tr><td>Listen port</td><td>The port the control server listens on</td><td>The default is usually fine; get it wrong and nothing can connect</td></tr>
+          <tr><td>Log level</td><td>How much detail the log records</td><td>Raise it temporarily while troubleshooting, then set it back</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><strong>Change settings carefully:</strong> Add-on settings are written into the Supervisor options, and a wrong value can stop the control server from starting. When in doubt, keep the defaults, or ask an admin to change them.</div>
+    </section>
+
+    <section id="test" data-nav="Install check">
+      <h2 data-icon="test">Acceptance check after install</h2>
+      <table class="data-table">
+        <thead><tr><th>Check</th><th>Passing condition</th></tr></thead>
+        <tbody>
+          <tr><td>Add-on status</td><td>Shows "Running"</td></tr>
+          <tr><td>Log</td><td>No repeating errors, and an initialization/ready message appears</td></tr>
+          <tr><td>Version check</td><td>You can query the Headscale version (Chapter 3)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="troubleshoot" data-nav="Install problems">
+      <h2 data-icon="troubleshoot">Common install pitfalls</h2>
+      <ol class="steps">
+        <li><h3>The install just keeps spinning</h3><p>The first image download is slow by nature, so check that your network is fine and wait. If it really is stuck, look in the log for errors.</p></li>
+        <li><h3>It starts, then goes back to stopped</h3><p>Read the log and find the first error message (usually a config problem or a port conflict), fix it, then start it again.</p></li>
+        <li><h3>The log keeps reporting connection errors</h3><p>The external domain or the port is probably wrong, so check them against the configuration options; if it still fails, ask an admin for help.</p></li>
+        <li><h3>You cannot find the add-on</h3><p>Check that you added the repository URL correctly and refreshed the store; reload the store page if you have to.</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">Install FAQ</h2>
+      <details class="faq"><summary>I only want to use it. Do I have to install it myself?</summary><div class="body">No. The setup on this site is already installed by WoowTech, so go straight to Chapter 3 and get to know the control interface. This chapter is for people who install it themselves.</div></details>
+      <details class="faq"><summary>Does the install take up much space?</summary><div class="body">Headscale itself is small; what takes up space is the database and the logs it builds up later. Check that the host has enough storage before you install.</div></details>
+      <details class="faq"><summary>Can I install it somewhere other than HA?</summary><div class="body">Yes. Headscale has official Docker and package install methods. This tutorial is written around the HA add-on; for the other methods, see the official documentation.</div></details>
+      <details class="faq"><summary>What should I do first after installing?</summary><div class="body">First confirm the add-on is running normally and that you can query the version, then create users and keys as described in Chapter 4.</div></details>
+      <details class="faq"><summary>Is a long start normal?</summary><div class="body">The first start has to initialize the database and the config, so anything within a few minutes is normal. If the log is still moving, do not restart it.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale website</a></td><td>What it is and where the docs live</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>Install, config and versions</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale knowledge base</a></td><td>Client-side steps and concept mapping</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch1_intro.html">
+        <span class="label">← Previous</span>
+        <span class="title">01 · Requirements and security boundaries</span>
+      </a>
+      <a class="next" href="ch3_first_open.html">
+        <span class="label">Next →</span>
+        <span class="title">03 · First open and sign-in</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>

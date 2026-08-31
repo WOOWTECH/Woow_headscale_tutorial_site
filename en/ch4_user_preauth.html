@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 4 · Create a user and a preauth key · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale, create a user and a preauth key: namespaces (the legacy name), users and preauth keys." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch4_user_preauth.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 4 · Create a user and a preauth key · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale, create a user and a preauth key: namespaces (the legacy name), users and preauth keys." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch4_user_preauth.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 4 · Create a user and a preauth key · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale, create a user and a preauth key: namespaces (the legacy name), users and preauth keys." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch4_user_preauth.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch4_user_preauth.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html">First open</a></li>
+      <li><a href="ch4_user_preauth.html" class="active">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">Users and keys</a>
+      <a href="#steps">Create steps</a>
+      <a href="#manage">Key management</a>
+      <a href="#organize">Organizing users</a>
+      <a href="#troubleshoot">Setup problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 4</div>
+      <h1>Create a user and a preauth key</h1>
+      <p class="lead">Create your first user in Headscale, then generate the preauth key that lets a device join the tailnet. By the end of this chapter, you'll know how users and keys relate, and how to safely hand a new device a "key you can revoke".</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">No user, no device</h2>
+      <p>Headscale uses a "user" to own nodes: every device that joins the tailnet has to sit under some user. And the key that lets a device "join by itself" is the <strong>preauth key</strong>. Creating a user and issuing a key is what makes a second and a third device possible.</p>
+      <div class="callout"><strong>Chapter task:</strong> create a user, generate a preauth key, and get to know the key's lifecycle and security. These actions change the state of the control server, so be clear about what you need them for before you start.</div>
+    </section>
+
+    <section id="concept" data-nav="Users and keys">
+      <h2 data-icon="concept">How users and preauth keys relate</h2>
+      <table class="data-table">
+        <thead><tr><th>Concept</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td>user</td><td>The unit a node belongs to. One user can have several devices</td></tr>
+          <tr><td>preauth key</td><td>A single-use (or reusable) key that lets a device skip the interactive login and join a given user directly</td></tr>
+          <tr><td>node</td><td>Once it has joined, each device is a node</td></tr>
+        </tbody>
+      </table>
+      <p>The flow is: create the user → generate a preauth key for that user → hand the key to the device → the device joins with it → revoke the key once it has been used.</p>
+      <div class="callout tip"><strong>In one line:</strong> a user is "ownership", a preauth key is "the ticket at the door". The ticket is bound to one user, and you tear it up once it has been used.</div>
+    </section>
+
+    <section id="steps" data-nav="Create steps">
+      <h2 data-icon="steps">Six steps to create a user and a preauth key</h2>
+      <ol class="steps">
+        <li><h3>Get into the Headscale admin environment</h3><p>In the add-on's terminal or on the host, confirm that you can run the <code>headscale</code> command (Chapter 3).</p></li>
+        <li><h3>Create the user</h3><p>Run <code>headscale users create &lt;name&gt;</code> — for example <code>headscale users create family</code> — to create a user called family.</p></li>
+        <li><h3>Check that the user was created</h3><p>Run <code>headscale users list</code>; the user you just created should appear in the list.</p></li>
+        <li><h3>Generate the preauth key</h3><p>Run <code>headscale preauthkeys create --user family</code>. The command returns a key that looks something like <code>headscale-xxxxx...</code>.</p></li>
+        <li><h3>Add an expiry and reusability if you need them</h3><p>Add <code>--expiration 24h</code> to make it valid for 24 hours, or <code>--reusable</code> to let it be used more than once (single-use is the default).</p></li>
+        <li><h3>Record the key and store it safely</h3><p>Write the returned key down in full (use a password manager); do not paste it into a public chat or a notes app. You will need it in Chapter 5.</p></li>
+      </ol>
+      <div class="callout warn"><strong>The key is shown once:</strong> a preauth key is usually shown in full only when you create it, and after that the list may show only the prefix. Save it the moment you create it.</div>
+    </section>
+
+    <section id="manage" data-nav="Key management">
+      <h2 data-icon="security">Key lifecycle and management</h2>
+      <table class="data-table">
+        <thead><tr><th>Action</th><th>Command (example)</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td>List one user's keys</td><td><code>headscale preauthkeys list --user family</code></td><td>To take inventory of which keys are out there</td></tr>
+          <tr><td>Revoke / expire</td><td><code>headscale preauthkeys expire --user family &lt;key&gt;</code></td><td>After the device has joined, or when a key leaks</td></tr>
+          <tr><td>Delete a user</td><td><code>headscale users destroy &lt;name&gt;</code></td><td>After you have dealt with every node under that user</td></tr>
+        </tbody>
+      </table>
+      <div class="callout danger"><strong>A key is a key:</strong> anyone who gets hold of a preauth key can join a device to your tailnet. Treat it as a top secret; revoke it immediately once it has been used, or if it went to the wrong person.</div>
+    </section>
+
+    <section id="organize" data-nav="Organizing users">
+      <h2 data-icon="compare">How to organize users</h2>
+      <p>How you split users up decides how easy management and the ACL will be later on. Households and small teams usually take one of two approaches:</p>
+      <table class="data-table">
+        <thead><tr><th>Approach</th><th>Best for</th><th>Trade-offs</th></tr></thead>
+        <tbody>
+          <tr><td>One shared user for the whole household</td><td>Small households where everyone trusts each other</td><td>Simple, but hard to give different people different permissions</td></tr>
+          <tr><td>One user per person</td><td>When you need to separate permissions and manage people individually</td><td>More work, but the ACL can control access precisely (Chapter 7)</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Start simple:</strong> at first, use a single user to get the whole flow working. Once you have more devices and need to separate permissions, split it into one user per person.</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="Setup problems">
+      <h2 data-icon="troubleshoot">Common setup pitfalls</h2>
+      <ol class="steps">
+        <li><h3>users create fails</h3><p>The name may already exist, or you may not have admin rights. Check with <code>headscale users list</code>.</p></li>
+        <li><h3>preauthkeys create returns an error</h3><p>Confirm that the user named by <code>--user</code> already exists; a misspelled user name will fail.</p></li>
+        <li><h3>You closed the window before saving the key</h3><p>The key will usually not be shown in full again. The safest move is to revoke the old one and generate a new one.</p></li>
+        <li><h3>The device cannot join with the key</h3><p>Check whether the key has expired, whether it is bound to the right user, and whether it has already been used up (a single-use key).</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">Setup FAQ</h2>
+      <details class="faq"><summary>How many devices can one user have?</summary><div class="body">There is no hard limit. One household device or a whole set of family devices can sit under the same user, or you can split them across several users.</div></details>
+      <details class="faq"><summary>What is the difference between a preauth key and logging in with a username and password?</summary><div class="body">A preauth key is the key that lets a device join with "no interaction", which suits automation and command-line situations; interactive login goes through browser authorization instead. Both are ways of authorizing a device to join.</div></details>
+      <details class="faq"><summary>How long can a key stay valid?</summary><div class="body">Use <code>--expiration</code> to set the validity period (24h, 1h, and so on). The default validity depends on your Headscale settings; for anything temporary, keep it short.</div></details>
+      <details class="faq"><summary>What does "--reusable" mean?</summary><div class="body">It lets the same key join several devices; leave it off and the default is "valid for one use only". You do not need it when you are issuing a one-off key to a single device.</div></details>
+      <details class="faq"><summary>What if a key leaks?</summary><div class="body">Revoke it immediately with <code>headscale preauthkeys expire</code>, then generate a new one. For nodes that already joined with that key, go to node management (Chapter 6) and decide whether to remove them.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale website</a></td><td>CLI commands and usage docs</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>The users and preauth keys commands and their options</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale knowledge base</a></td><td>Client-side joining and key concept mapping</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch3_first_open.html">
+        <span class="label">← Previous</span>
+        <span class="title">03 · First open and sign-in</span>
+      </a>
+      <a class="next" href="ch5_join_device.html">
+        <span class="label">Next →</span>
+        <span class="title">05 · Join your first device</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>

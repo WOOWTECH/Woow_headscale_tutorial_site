@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 3 · First open and sign-in · Headscale self-hosted VPN control server guide</title>
+  <meta name="description" content="Headscale first open: the control interface, the CLI and the API, and admin operations." />
+  <meta name="author" content="WoowTech" />
+  <link rel="canonical" href="https://headscale-guide.woowtech.io/en/ch3_first_open.html" />
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Headscale self-hosted VPN control server guide" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="zh_TW" />
+  <meta property="og:title" content="Chapter 3 · First open and sign-in · Headscale self-hosted VPN control server guide" />
+  <meta property="og:description" content="Headscale first open: the control interface, the CLI and the API, and admin operations." />
+  <meta property="og:url" content="https://headscale-guide.woowtech.io/en/ch3_first_open.html" />
+  <meta property="og:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chapter 3 · First open and sign-in · Headscale self-hosted VPN control server guide" />
+  <meta name="twitter:description" content="Headscale first open: the control interface, the CLI and the API, and admin operations." />
+  <meta name="twitter:image" content="https://headscale-guide.woowtech.io/assets/og/headscale-guide.en.png" />
+  <meta name="theme-color" content="#6183FC" />
+  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.en" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/i18n.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="tutorial.html">Headscale Guide</a>
+    <div class="brand-sub">Self-hosted Tailscale control server</div>
+    <nav class="lang-switch" aria-label="Language"><a href="../ch3_first_open.html" lang="zh-Hant" hreflang="zh-Hant">中文</a><a class="active" href="ch3_first_open.html" lang="en" aria-current="page">EN</a></nav>
+    <a class="hub-link" href="index.html">◂ Resource Hub</a>
+    <h2>Chapters</h2>
+    <ol>
+      <li class="part-label">Basics: concepts and installation</li>
+      <li><a href="ch1_intro.html">Before you start</a></li>
+      <li><a href="ch2_install.html">Install</a></li>
+      <li><a href="ch3_first_open.html" class="active">First open</a></li>
+      <li><a href="ch4_user_preauth.html">Users and keys</a></li>
+      <li class="part-label">Build: create your own tailnet</li>
+      <li><a href="ch5_join_device.html">Join a device</a></li>
+      <li><a href="ch6_nodes.html">Node management</a></li>
+      <li><a href="ch7_acl.html">ACL access control</a></li>
+      <li><a href="ch8_routes.html">Routes</a></li>
+      <li class="part-label">Manage: operations and security</li>
+      <li><a href="ch9_dns.html">DNS</a></li>
+      <li><a href="ch10_admin.html">Admin settings</a></li>
+      <li><a href="ch11_security.html">Security check</a></li>
+      <li><a href="ch12_troubleshooting.html">Troubleshoot and maintain</a></li>
+    </ol>
+    <div class="toc-in-chapter">
+      <h2>This chapter</h2>
+      <a href="#why">Why this matters</a>
+      <a href="#concept">Ways to manage</a>
+      <a href="#steps">Check version</a>
+      <a href="#commands">Basic commands</a>
+      <a href="#security">Keep it private</a>
+      <a href="#troubleshoot">First-open problems</a>
+      <a href="#faq">FAQ</a>
+      <a href="#sources">Official sources</a>
+    </div>
+    <div class="toc-in-chapter">
+      <h2>Appendices</h2>
+
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="chapter-header">
+      <div class="kicker">Chapter 3</div>
+      <h1>First open and sign-in</h1>
+      <p class="lead">Get to know how Headscale is managed — it is driven mainly by the command line (CLI) and the API, and only some environments have a Web UI. By the end of this chapter, you'll have checked the version and status, you'll recognize the basic commands, and you'll know why the control server must not be exposed.</p>
+    </div>
+
+    <section id="why" data-nav="Why this matters">
+      <h2 data-icon="why">The control server is not what you expect</h2>
+      <p>The services you set up earlier (photo album, cloud drive) all came with a nice graphical interface. Headscale is different: it is a back-end service, and most management work goes through the <strong>command line (CLI)</strong> and the <strong>API</strong>. Get that clear first, and you will not spend your time hunting for a "settings button" that is not there.</p>
+      <div class="callout"><strong>Chapter task:</strong> Open a terminal on the control server, check the version and status, and get to know a few basic commands. Everything here is read-only; you create nothing.</div>
+    </section>
+
+    <section id="concept" data-nav="Ways to manage">
+      <h2 data-icon="concept">Three ways to manage it</h2>
+      <table class="data-table">
+        <thead><tr><th>Method</th><th>What it looks like</th><th>Who it suits</th></tr></thead>
+        <tbody>
+          <tr><td>Command line (CLI)</td><td>You type commands that start with <code>headscale</code> in a terminal</td><td>The main way to manage it, with the most complete feature set</td></tr>
+          <tr><td>API</td><td>A program or script calls the HTTP interface</td><td>Automation and integration</td></tr>
+          <tr><td>Web UI (if you have one)</td><td>A graphical interface</td><td>Looking at status; only some deployments have one</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Adjust your expectations:</strong> Think of Headscale as a server you type commands into, not an app you click around in. Once the commands are familiar it goes quickly.</div>
+    </section>
+
+    <section id="steps" data-nav="Check version">
+      <h2 data-icon="steps">Five steps to check version and status</h2>
+      <ol class="steps">
+        <li><h3>Open the add-on terminal</h3><p>On the Headscale add-on page in Home Assistant, find the "Terminal" entry point (or connect to the host over SSH) and get to a command line.</p></li>
+        <li><h3>Check the version</h3><p>Type <code>headscale version</code>. It shows the Headscale version number you are running.</p></li>
+        <li><h3>See which users exist</h3><p>Type <code>headscale users list</code> to list the current users (namespaces, the legacy name). A fresh install may only have the default entry.</p></li>
+        <li><h3>See which nodes exist</h3><p>Type <code>headscale nodes list</code> to list the nodes that have joined. Right after an install this is usually still empty.</p></li>
+        <li><h3>Read the log to confirm it is running</h3><p>Go back to the add-on's "Log" tab and confirm there are no repeating errors and that the service keeps running.</p></li>
+      </ol>
+      <div class="callout warn"><strong>Run commands in the right place:</strong> The <code>headscale</code> command only exists inside the add-on container or in the headscale runtime environment on the host. In the wrong place you get "command not found".</div>
+    </section>
+
+    <section id="commands" data-nav="Basic commands">
+      <h2 data-icon="compare">Basic command reference</h2>
+      <table class="data-table">
+        <thead><tr><th>Command</th><th>What it does</th><th>Chapter</th></tr></thead>
+        <tbody>
+          <tr><td><code>headscale version</code></td><td>Shows the version</td><td>This chapter</td></tr>
+          <tr><td><code>headscale users list</code></td><td>Lists users</td><td>Chapter 4</td></tr>
+          <tr><td><code>headscale users create</code></td><td>Creates a user</td><td>Chapter 4</td></tr>
+          <tr><td><code>headscale preauthkeys list</code></td><td>Lists preauth keys</td><td>Chapter 4</td></tr>
+          <tr><td><code>headscale nodes list</code></td><td>Lists nodes</td><td>Chapter 6</td></tr>
+        </tbody>
+      </table>
+      <div class="callout tip"><strong>Use --help:</strong> If you are not sure how a command works, type <code>headscale &lt;subcommand&gt; --help</code> and it prints an explanation. Get into the habit of reading the help first.</div>
+    </section>
+
+    <section id="security" data-nav="Keep it private">
+      <h2 data-icon="security">Why the control server must not be exposed</h2>
+      <p>The control server is the brain of the whole tailnet: the node list, the ACL and the keys all live there. Once an outsider can reach it, your private tailnet has effectively been taken over. So:</p>
+      <ul>
+        <li>The management interfaces (CLI / API / Web UI) are for admins only and are never exposed to the public internet.</li>
+        <li>What a client connects to is the endpoint used for joining, not the whole management interface exposed to the public internet.</li>
+        <li>When you do need outside access, run it through an encrypted tunnel such as Cloudflare Tunnel instead of opening a port directly.</li>
+      </ul>
+      <div class="callout danger"><strong>Hard stop:</strong> Do not publish the Headscale management interface straight to the internet just to make remote access convenient. Remote management goes through a secure channel + least privilege.</div>
+    </section>
+
+    <section id="troubleshoot" data-nav="First-open problems">
+      <h2 data-icon="troubleshoot">Common first-open pitfalls</h2>
+      <ol class="steps">
+        <li><h3>You cannot find the terminal</h3><p>Different add-ons put the terminal in different places. Look for "Terminal" on the add-on page, or ask your admin how to get to the CLI.</p></li>
+        <li><h3>Typing headscale says command not found</h3><p>You are not in the right runtime environment. Make sure you opened the add-on container's terminal, or that headscale is installed on the host.</p></li>
+        <li><h3>The command reports insufficient permissions</h3><p>Some operations need higher privileges. Run them as the right user, or ask an admin to handle it.</p></li>
+        <li><h3>There is no Web UI and it feels unfamiliar</h3><p>Headscale is CLI- and API-first; a Web UI is optional. Get comfortable with the CLI — every later chapter uses commands.</p></li>
+      </ol>
+    </section>
+
+    <section id="faq" data-nav="FAQ">
+      <h2 data-icon="faq">First open FAQ</h2>
+      <details class="faq"><summary>Why doesn't Headscale have a nice interface?</summary><div class="body">It is the control server back end. Its job is managing nodes and the policy, not day-to-day use. Everyday browsing and device-to-device connections run through the client side (Tailscale), so you do not need to watch the control server all day.</div></details>
+      <details class="faq"><summary>Do I have to be able to type commands?</summary><div class="body">For admin actions (creating users, issuing keys) yes. For everyday use (devices connecting to each other) you barely touch the control server. There are not many commands, and you can type them as written.</div></details>
+      <details class="faq"><summary>What is a Web UI?</summary><div class="body">Some deployments install a separate graphical interface such as headscale-ui, which makes it easier to look at status. Full management is still done through the CLI and API.</div></details>
+      <details class="faq"><summary>Does the version that headscale version shows matter?</summary><div class="body">Yes. When you troubleshoot or check what a feature does, you have to match the version, and the client side has to be compatible as well. A version mismatch is sometimes the source of the problem.</div></details>
+      <details class="faq"><summary>Can I open the control server up to my family?</summary><div class="body">The control server is for admins only. Family members just join the tailnet with their devices (Chapter 5); they do not need to touch the control server.</div></details>
+    </section>
+
+    <section id="sources" data-nav="Official sources">
+      <h2 data-icon="records">Official sources</h2>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>What to verify</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://headscale.net/" rel="noopener">Headscale website</a></td><td>How it is managed, and the command docs</td></tr>
+          <tr><td><a href="https://github.com/juanfont/headscale" rel="noopener">Headscale on GitHub</a></td><td>CLI commands, versions and issues</td></tr>
+          <tr><td><a href="https://tailscale.com/kb/" rel="noopener">Tailscale knowledge base</a></td><td>Client-side steps and concept mapping</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="prev" href="ch2_install.html">
+        <span class="label">← Previous</span>
+        <span class="title">02 · Install Headscale</span>
+      </a>
+      <a class="next" href="ch4_user_preauth.html">
+        <span class="label">Next →</span>
+        <span class="title">04 · Users and preauth keys</span>
+      </a>
+    </div>
+
+    <footer class="site-footer">
+      <p>Headscale self-hosted VPN control server guide is produced by <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">WoowTech</a> and released under <a rel="license noopener" href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a> — share and adapt freely, with attribution.</p>
+      <p class="footer-meta">Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them. · <a href="https://github.com/WOOWTECH/Woow_headscale_tutorial_site" rel="noopener">Source &amp; errata</a></p>
+    </footer>
+  </main>
+</div>
+<script id="ui-strings" type="application/json">{"tocToggle":"Contents","tocExpand":"Expand chapter navigation","tocCollapse":"Collapse chapter navigation"}</script>
+<script src="../assets/js/toc.js"></script>
+</body>
+</html>
