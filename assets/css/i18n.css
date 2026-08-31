@@ -5,11 +5,14 @@
  * 只用 style.css 已定義的 token，不重寫任何品牌色。
  */
 
-/* 語言切換：側欄品牌下方；hub 首頁在 hero 內 */
-.lang-switch { display: inline-flex; gap: 4px; margin: -14px 0 var(--space-5); padding: 3px; border: 1px solid var(--hairline); border-radius: var(--radius-pill); background: var(--surface-card); }
-.lang-switch a { display: inline-flex; min-height: 26px; align-items: center; padding: 0 12px; border-radius: var(--radius-pill); color: var(--text-secondary); font: 600 12px/1 var(--font-title); letter-spacing: .04em; text-decoration: none; }
-.lang-switch a:hover { color: var(--ww-blue-700); text-decoration: none; }
-.lang-switch a.active { background: var(--ww-blue-050); color: var(--ww-blue-700); }
+/* 語言切換：側欄品牌下方；hub 首頁在 hero 內。
+   三本手冊是自帶樣式的單檔頁，沒有 style.css 的 token，所以每個 var() 都給 fallback，
+   讓這一塊在有沒有 style.css 的頁面上都長得一樣。 */
+.lang-switch { display: inline-flex; gap: 4px; margin: -14px 0 var(--space-5, 20px); padding: 3px; border: 1px solid var(--hairline, rgba(33, 33, 33, .08)); border-radius: var(--radius-pill, 999px); background: var(--surface-card, #fff); }
+.lang-switch a { display: inline-flex; min-height: 26px; align-items: center; padding: 0 12px; border-radius: var(--radius-pill, 999px); color: var(--text-secondary, #616161); font: 600 12px/1 var(--font-title, "Poppins", sans-serif); letter-spacing: .04em; text-decoration: none; }
+.lang-switch a:hover { color: var(--ww-blue-700, #3F63E8); text-decoration: none; }
+.lang-switch a.active { background: var(--ww-blue-050, #EEF2FF); color: var(--ww-blue-700, #3F63E8); }
+.sidebar .lang-switch { margin-top: 0; }
 .sidebar .lang-switch + .hub-link { display: block; margin: -8px 0 24px; }
 .home .hero .lang-switch { margin: 0 0 var(--space-5); }
 
