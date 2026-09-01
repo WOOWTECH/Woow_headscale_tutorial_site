@@ -68,6 +68,7 @@ const ZH = {
   tocToggle: '目錄',
   tocExpand: '展開章節與本章目錄',
   tocCollapse: '收合章節與本章目錄',
+  title404: '404 · {site}',
 };
 
 function loadStrings(repoRoot, lang) {
@@ -136,7 +137,7 @@ function extractUnits(html) {
 
 /** chapters.json 裡「人讀」的欄位也是 unit。 */
 const HUMAN_FIELDS = ['title', 'navLabel', 'pagerTitle', 'card', 'description', 'part'];
-const SITE_HUMAN_FIELDS = ['title', 'brand', 'subtitle', 'description'];
+const SITE_HUMAN_FIELDS = ['title', 'brand', 'subtitle', 'description', 'footerMeta'];
 function extractConfigUnits(cfg) {
   const units = [];
   for (const f of SITE_HUMAN_FIELDS) {

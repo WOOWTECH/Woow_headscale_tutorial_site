@@ -36,7 +36,17 @@ const { repoRoot: REPO_ROOT, root: ROOT, subdir: SUBDIR, isPrimary: IS_PRIMARY }
 const CHECK = process.argv.includes('--check');
 const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'chapters.json'), 'utf8'));
 const { site } = cfg;
-const S = i18n.loadStrings(REPO_ROOT, site.lang);
+// 字串表三層：lib/i18n.js 的 zh 字面值 → i18n/strings.<lang>.json（語系共用）→ chapters.json 的 site.strings（本站專屬，
+// 例：pager 標籤要帶 mdi 圖示、404 標題不同）。這樣 13 站可以共用同一支 generator，站別差異全部留在 chapters.json。
+const S = { ...i18n.loadStrings(REPO_ROOT, site.lang), ...(site.strings || {}), lang: (site.strings && site.strings.lang) || i18n.loadStrings(REPO_ROOT, site.lang).lang };
+// 版面旋鈕（預設值 = headscale 的現行輸出；其他站在 chapters.json 的 site.chrome 裡調）
+const CHROME = {
+  hideEmptyAppendices: false, // true：沒有附錄時，側欄與目錄頁都不輸出「附錄」空區塊
+  catalogGroupClass: null,    // 例 "spaced"：目錄頁第二組以後用 class 而非 inline style
+  firstPrevDisabled: true,    // 第一章的「上一章」：true = class="prev disabled"
+  manage404: 'auto',          // auto：404.html 的 <head> 沒有 <title> 才接管；true/false 強制
+  ...((site.chrome) || {}),
+};
 const LOCALES = i18n.loadLocales(REPO_ROOT);
 const LEDGER = i18n.loadLedger(REPO_ROOT);
 const LOCALE = IS_PRIMARY ? null : site.localeCode || SUBDIR;
@@ -113,6 +123,9 @@ function buildHead(page, html) {
   const ogImage = `${ASSET_BASE_URL}/${firstImg || site.ogImage}`;
   const robots = indexable(page.file) ? 'index, follow, max-image-preview:large' : 'noindex, follow';
   const ogAlt = (site.localeAlternate || []).map((l) => `\n  <meta property="og:locale:alternate" content="${l}" />`).join('');
+  const ogMeta = site.ogImageMeta
+    ? `\n  <meta property="og:image:type" content="${site.ogImageMeta.type || 'image/png'}" />\n  <meta property="og:image:width" content="${site.ogImageMeta.width || 1200}" />\n  <meta property="og:image:height" content="${site.ogImageMeta.height || 630}" />`
+    : '';
 
   return `<head>
   <meta charset="utf-8" />
@@ -128,7 +141,7 @@ function buildHead(page, html) {
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(desc)}" />
   <meta property="og:url" content="${url(page.file)}" />
-  <meta property="og:image" content="${ogImage}" />
+  <meta property="og:image" content="${ogImage}" />${ogMeta}
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${esc(title)}" />
   <meta name="twitter:description" content="${esc(desc)}" />
@@ -144,7 +157,7 @@ function buildHead(page, html) {
 }
 
 function build404Head() {
-  const title = `404 · ${site.title}`;
+  const title = i18n.fmt(S.title404, { site: site.title });
   return `<head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -218,7 +231,7 @@ function buildSidebar(page, html) {
     .join('\n');
 
   const hubLink = HUB
-    ? `\n    <a class="hub-link" href="index.html">${esc(i18n.fmt(S.hubLink, { label: HUB.navLabel || S.hubLabelDefault }))}</a>`
+    ? `\n    <a class="hub-link" href="index.html">${i18n.fmt(S.hubLink, { label: esc(HUB.navLabel || S.hubLabelDefault) })}</a>`
     : '';
   const sw = i18n.langSwitch({
     isPrimary: IS_PRIMARY,
@@ -231,6 +244,14 @@ function buildSidebar(page, html) {
     catalog: CATALOG,
   });
   const switchHtml = sw ? `\n    ${sw}` : '';
+  const appendixBlock =
+    CHROME.hideEmptyAppendices && !appendices.length
+      ? ''
+      : `
+    <div class="toc-in-chapter">
+      <h2>${S.sidebarAppendices}</h2>
+${appendixItems}
+    </div>`;
   return `<aside class="sidebar">
     <a class="brand" href="${CATALOG}">${esc(site.brand)}</a>
     <div class="brand-sub">${esc(site.subtitle)}</div>${switchHtml}${hubLink}
@@ -241,11 +262,7 @@ ${chapterItems}
     <div class="toc-in-chapter">
       <h2>${S.sidebarInChapter}</h2>
 ${inChapter}
-    </div>
-    <div class="toc-in-chapter">
-      <h2>${S.sidebarAppendices}</h2>
-${appendixItems}
-    </div>
+    </div>${appendixBlock}
   </aside>`;
 }
 
@@ -261,9 +278,9 @@ function buildPager(page) {
         <span class="label">${prev.kind === 'appendix' ? i18n.fmt(S.pagerPrevAppendix, { n: prev.num }) : S.pagerPrev}</span>
         <span class="title">${esc(prev.pagerTitle)}</span>
       </a>`
-    : `      <a class="prev disabled" href="${CATALOG}">
-        <span class="label">${S.pagerPrev}</span>
-        <span class="title">${S.pagerContents}</span>
+    : `      <a class="prev${CHROME.firstPrevDisabled ? ' disabled' : ''}" href="${CATALOG}">
+        <span class="label">${S.pagerFirstPrev || S.pagerPrev}</span>
+        <span class="title">${S.pagerFirstPrevTitle || S.pagerContents}</span>
       </a>`;
 
   const nextLabel = !next
@@ -292,11 +309,9 @@ ${nextHtml}
 
 /* -------------------------------------------------------------- footer --- */
 
-// 站別句子：只有這一行是本站專屬；其他語系由 i18n/strings.<lang>.json 的 footerMeta 覆寫。
-const FOOTER_META_ZH =
-  '截圖取自 Headscale 與 Tailscale 官方介面。Headscale 與 Tailscale 為其各自權利人的商標，本站與其無隸屬關係。';
-
+// 站別句子（商標／版本聲明）住在各 root 的 chapters.json site.footerMeta，是翻譯單元；kit 本身不含任何站名。
 function buildFooter() {
+  if (!site.footerMeta) problems.push('chapters.json: 缺 site.footerMeta（頁尾的商標／來源聲明句）');
   const license = i18n.fmt(S.footerLicense, {
     site: esc(site.title),
     repoUrl: site.repoUrl,
@@ -304,9 +319,12 @@ function buildFooter() {
     licenseUrl: site.license.url,
     licenseName: esc(site.license.name),
   });
-  const meta = S.footerMeta || FOOTER_META_ZH;
+  const meta = site.footerMeta || '';
+  const links = (site.footerLinks || []).length
+    ? `\n      <div class="link-row">${site.footerLinks.map((l) => `<a href="${l.href === 'repo' ? site.repoUrl : l.href}" rel="noopener">${esc(l.label)}</a>`).join('')}</div>`
+    : '';
   return `<footer class="site-footer">
-      <p>${license}</p>
+      <p>${license}</p>${links}
       <p class="footer-meta">${meta} · <a href="${site.repoUrl}" rel="noopener">${S.footerSource}</a></p>
     </footer>`;
 }
@@ -335,7 +353,7 @@ function applyLocaleExtras(page, html) {
 }
 
 function setHtmlLang(html) {
-  return html.replace(/<html lang="[^"]*">/, `<html lang="${S.lang}">`);
+  return html.replace(/<html lang="[^"]*">/, `<html lang="${site.htmlLang || S.lang}">`);
 }
 
 /* ---------------------------------------------------------------- apply -- */
@@ -403,11 +421,13 @@ function buildIndex() {
     if (g) g.items.push(c);
     else groups.push({ title, items: [c] });
   }
-  groups.push({ title: S.indexGroupAppendices, items: appendices });
+  if (!(CHROME.hideEmptyAppendices && !appendices.length)) groups.push({ title: S.indexGroupAppendices, items: appendices });
 
+  const groupOpen = (i) =>
+    !i ? '<section class="chapter-index">' : CHROME.catalogGroupClass ? `<section class="chapter-index ${CHROME.catalogGroupClass}">` : '<section class="chapter-index" style="margin-top:56px;">';
   const grids = groups
     .map(
-      (g, i) => `<section class="chapter-index"${i ? ' style="margin-top:56px;"' : ''}>
+      (g, i) => `${groupOpen(i)}
       <h2 class="index-title">${esc(g.title)}</h2>
       <div class="chapter-grid">
 ${g.items.map(card).join('\n')}
@@ -527,7 +547,10 @@ function applyLangSwitch(html, file) {
   if (/<a class="hub-link"/.test(html)) {
     return html.replace(/([ \t]*)(<a class="hub-link")/, (m, ws, tag) => `${ws}<!-- i18n:switch -->${sw}<!-- /i18n:switch -->\n${ws}${tag}`);
   }
-  return html.replace(/(<div class="hero">)/, (m) => `${m}\n      <!-- i18n:switch -->\n      ${sw}\n      <!-- /i18n:switch -->`);
+  // 各站 hero 容器寫法不一：<div class="hero">、<header class="hero">、<div class="resource-hero">；第一個命中的就是插入點。
+  const heroRe = /(<(?:div|header) class="(?:hero|resource-hero)"[^>]*>)/;
+  if (!heroRe.test(html)) problems.push(`${file}: 找不到放語言切換的位置（hub-link 或 hero 容器）`);
+  return html.replace(heroRe, (m) => `${m}\n      <!-- i18n:switch -->\n      ${sw}\n      <!-- /i18n:switch -->`);
 }
 
 function applyRobots(html, file) {
@@ -544,6 +567,9 @@ function build404() {
   const p = path.join(ROOT, '404.html');
   if (!fs.existsSync(p)) return null;
   const original = fs.readFileSync(p, 'utf8');
+  // auto：手寫的 404 <head>（有 <title>）不碰；只有空殼才由 generator 補。
+  const manage = CHROME.manage404 === 'auto' ? !/<head>[\s\S]*?<title>[\s\S]*?<\/head>/.test(original) : !!CHROME.manage404;
+  if (!manage) return null;
   let html = replaceOne('404.html', original, /<head>[\s\S]*?<\/head>/, build404Head(), '<head>');
   return { file: '404.html', path: p, original, html };
 }
@@ -556,10 +582,9 @@ function buildSitemap() {
   const listed = files.filter(indexable);
   const entries = listed.map((f) => {
     const rel = SUBDIR ? `${SUBDIR}/${f}` : f;
-    const lastmod = i18n.gitLastMod(REPO_ROOT, rel) || fallback;
+    const lastmod = site.sitemap && site.sitemap.lastmod === 'none' ? null : i18n.gitLastMod(REPO_ROOT, rel) || fallback;
     return `  <url>
-    <loc>${url(f)}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <loc>${url(f)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}
     <changefreq>monthly</changefreq>
     <priority>${f === 'index.html' ? '1.0' : '0.8'}</priority>
   </url>`;
