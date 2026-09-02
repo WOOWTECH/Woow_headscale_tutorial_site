@@ -49,8 +49,8 @@ const ALL_FILES = [...new Set(['index.html', CATALOG, ...PAGES, ...HUB_PAGES])];
 const whitelist = i18n.readJSON(path.join(REPO_ROOT, 'i18n', 'code-translate.json'), { allow: [] });
 const today = new Date().toISOString().slice(0, 10);
 
-// 一-鿿 基本區、㐀-䶿 擴充 A、豈-﫿 相容區。用轉義寫，避免複製時被正規化成別的碼位。
-const HAN = /[㐀-䶿一-鿿豈-﫿]/;
+// 一-鿿 基本區、㐀-䶿 擴充 A、豈-﫿 相容區。用轉義寫，避免複製時被正規化成別的碼位。
+const HAN = /[㐀-䶿一-鿿豈-﫿]/;
 const errors = [];
 const warnings = [];
 let ledgerChanged = false;
@@ -116,9 +116,9 @@ function cjkHits(html, label) {
 function chromeRegions(html) {
   const r = {};
   r.sidebarHeadings = [...html.matchAll(/<aside class="sidebar">[\s\S]*?<\/aside>/g)].flatMap((m) => [...m[0].matchAll(/<h2>([^<]*)<\/h2>/g)].map((h) => h[1]));
-  r.hubLink = (html.match(/<a class="hub-link"[^>]*>([^<]*)<\/a>/) || [])[1] || '';
+  r.hubLink = (html.match(/<a class="hub-link"[^>]*>([\s\S]*?)<\/a>/) || [])[1] || '';
   r.kicker = (html.match(/<div class="kicker">([^<]*)<\/div>/) || [])[1] || '';
-  r.pagerLabels = [...html.matchAll(/<span class="label">([^<]*)<\/span>/g)].map((m) => m[1]);
+  r.pagerLabels = [...html.matchAll(/<span class="label">([\s\S]*?)<\/span>/g)].map((m) => m[1]);
   r.footer = (html.match(/<footer class="site-footer">([\s\S]*?)<\/footer>/) || [])[1] || '';
   r.uiStrings = (html.match(/<script id="ui-strings"[^>]*>([\s\S]*?)<\/script>/) || [])[1] || '';
   r.langSwitch = (html.match(/<nav class="lang-switch"[^>]*aria-label="([^"]*)"/) || [])[1] || '';
@@ -141,7 +141,7 @@ for (const [code, loc] of Object.entries(locales)) {
   }
   const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
   const sitemap = read(path.join(dir, 'sitemap.xml')) || '';
-  /* D0. strings.<lang>.json 本身零漢字（標 lang="zh-Hant" 的片段除外），且 footerMeta 必須存在 */
+  /* D0. strings.<lang>.json 本身零漢字（標 lang="zh-Hant" 的片段除外）；頁尾聲明句住在該 root 的 chapters.json site.footerMeta，是翻譯單元，由 C／E 閘門管 */
   const strings = i18n.readJSON(path.join(REPO_ROOT, 'i18n', `strings.${cfg.site.lang}.json`), null);
   if (!strings) err(`${code}: 缺少 i18n/strings.${cfg.site.lang}.json`);
   else {
@@ -149,8 +149,8 @@ for (const [code, loc] of Object.entries(locales)) {
       if (k.startsWith('_')) continue;
       if (HAN.test(stripForCjk(String(v)).replace(/<[^>]+>/g, ''))) err(`${code}: [D] strings.${cfg.site.lang}.json 的 ${k} 含漢字`);
     }
-    if (!strings.footerMeta) err(`${code}: [D] strings.${cfg.site.lang}.json 缺 footerMeta（footer 會落回中文）`);
   }
+  if (!cfg.site.footerMeta) err(`${code}: [D] ${code}/chapters.json 缺 site.footerMeta（頁尾會是空的）`);
   const localeBase = cfg.site.baseUrl.replace(/\/$/, '');
   const primaryBase = rootCfg.site.baseUrl.replace(/\/$/, '');
 
@@ -189,7 +189,8 @@ for (const [code, loc] of Object.entries(locales)) {
         const a = skeleton(zu.html);
         const b = skeleton(eu.html);
         if (a.join('|') !== b.join('|')) {
-          const at = a.findIndex((t, i2) => t !== b[i2]);
+          let at = a.findIndex((t, i2) => t !== b[i2]);
+          if (at < 0) at = Math.min(a.length, b.length); // 只差在尾巴：多出或少掉的那個 tag
           err(`${code}/${f}${zu.key}: [A] tag 骨架不同（第 ${at + 1} 個 tag：zh=${a[at] || '∅'} ${code}=${b[at] || '∅'}）`);
         }
         /* B. code freeze */

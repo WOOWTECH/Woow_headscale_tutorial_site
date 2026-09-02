@@ -68,6 +68,7 @@ const ZH = {
   tocToggle: '目錄',
   tocExpand: '展開章節與本章目錄',
   tocCollapse: '收合章節與本章目錄',
+  title404: '404 · {site}',
 };
 
 function loadStrings(repoRoot, lang) {
@@ -136,13 +137,20 @@ function extractUnits(html) {
 
 /** chapters.json 裡「人讀」的欄位也是 unit。 */
 const HUMAN_FIELDS = ['title', 'navLabel', 'pagerTitle', 'card', 'description', 'part'];
-const SITE_HUMAN_FIELDS = ['title', 'brand', 'subtitle', 'description'];
+const SITE_HUMAN_FIELDS = ['title', 'brand', 'subtitle', 'description', 'footerMeta'];
 function extractConfigUnits(cfg) {
   const units = [];
   for (const f of SITE_HUMAN_FIELDS) {
     if (cfg.site && cfg.site[f] != null) units.push({ key: `chapters.json:site.${f}`, hash: sha(normalize(cfg.site[f])) });
   }
   if (cfg.hub && cfg.hub.navLabel) units.push({ key: 'chapters.json:hub.navLabel', hash: sha(normalize(cfg.hub.navLabel)) });
+  // 本站字串覆寫（pager／hub-link 帶圖示的標籤等）也是人讀文字：一鍵一單元，翻譯時保留圖示標記只換文字。
+  for (const [k, v] of Object.entries((cfg.site && cfg.site.strings) || {})) {
+    if (typeof v === 'string' && k !== 'lang') units.push({ key: `chapters.json:site.strings.${k}`, hash: sha(normalize(v)) });
+  }
+  for (const [i, l] of ((cfg.site && cfg.site.footerLinks) || []).entries()) {
+    if (l && l.label) units.push({ key: `chapters.json:site.footerLinks.${i}.label`, hash: sha(normalize(l.label)) });
+  }
   for (const c of [...(cfg.chapters || []), ...(cfg.appendices || [])]) {
     for (const f of HUMAN_FIELDS) {
       if (c[f] != null) units.push({ key: `chapters.json:${c.file}.${f}`, hash: sha(normalize(c[f])) });
