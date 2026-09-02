@@ -36,8 +36,9 @@ for (const r of roots) {
   if (!fs.existsSync(r.cfgPath)) continue;
   const cfg = JSON.parse(fs.readFileSync(r.cfgPath, 'utf8'));
   const s = cfg.site;
-  const file = (s.ogImage || '').replace(/^assets\/og\//, '');
-  if (!file) continue;
+  // 只有指向 assets/og/ 的 root 才由這支產卡；用截圖當 og:image 的 zh 站維持原樣（那是站主的選擇，不改）。
+  if (!/^assets\/og\//.test(s.ogImage || '')) continue;
+  const file = s.ogImage.replace(/^assets\/og\//, '');
   cards.push({
     out: path.join(OUT_DIR, file),
     kicker: `${s.license.holder} · ${s.brand}`,
@@ -56,7 +57,7 @@ if (CHECK) {
     missing.forEach((c) => console.error('  · ' + path.relative(REPO_ROOT, c.out)));
     process.exit(1);
   }
-  console.log(`✓ ${cards.length} 張分享卡都在`);
+  console.log(cards.length ? `✓ ${cards.length} 張分享卡都在` : '· 沒有任何 root 用 assets/og/ 分享卡，略過');
   process.exit(0);
 }
 

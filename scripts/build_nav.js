@@ -346,9 +346,12 @@ function applyLocaleExtras(page, html) {
   if (banner) {
     html = html.replace(/(\n\s*)(<div class="chapter-header">)/, (m, ws, open_) => `${ws}${banner.trim()}${ws}${open_}`);
   }
-  html = html.replace(/\n?\s*<script id="ui-strings"[^>]*>[\s\S]*?<\/script>/, '');
+  html = html.replace(/\n?[ \t]*<script id="ui-strings"[^>]*>[\s\S]*?<\/script>/, '');
   const ui = JSON.stringify({ tocToggle: S.tocToggle, tocExpand: S.tocExpand, tocCollapse: S.tocCollapse });
-  html = html.replace(/(<script src="(?:\.\.\/)?assets\/js\/toc\.js"><\/script>)/, `<script id="ui-strings" type="application/json">${ui}</script>\n$1`);
+  // 有的站把 <script src=toc.js> 跟 </main> 寫在同一行；照著原本的斷行習慣插，重跑才不會多出一行。
+  html = html.replace(/(\n[ \t]*|)(<script src="(?:\.\.\/)?assets\/js\/toc\.js"><\/script>)/, (m, lead, tag) =>
+    `${lead}<script id="ui-strings" type="application/json">${ui}</script>${lead}${tag}`
+  );
   return html;
 }
 
