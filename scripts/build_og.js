@@ -20,6 +20,7 @@ const i18n = require('./lib/i18n');
 
 const REPO_ROOT = i18n.REPO_ROOT;
 const CHECK = process.argv.includes('--check');
+const FORCE = process.argv.includes('--force'); // 預設只補缺的卡；--force 全部重畫（會動到已入版控的 zh 卡，慎用）
 const OUT_DIR = path.join(REPO_ROOT, 'assets', 'og');
 
 // 每個語系一張：kicker（小標）、script（Yellowtail 暖色詞，各語系共用）、tag（網址）
@@ -97,6 +98,10 @@ h1{font:700 ${c.titleSize}/1.1 Poppins,"Noto Sans TC",sans-serif;letter-spacing:
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const browser = await chromium.launch();
   for (const c of cards) {
+    if (!FORCE && fs.existsSync(c.out)) {
+      console.log('· ' + path.relative(REPO_ROOT, c.out) + ' 已存在，略過（--force 重畫）');
+      continue;
+    }
     const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
     await page.setContent(tpl(c), { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);

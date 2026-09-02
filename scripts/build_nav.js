@@ -41,7 +41,7 @@ const { site } = cfg;
 const S = { ...i18n.loadStrings(REPO_ROOT, site.lang), ...(site.strings || {}), lang: (site.strings && site.strings.lang) || i18n.loadStrings(REPO_ROOT, site.lang).lang };
 // 版面旋鈕（預設值 = headscale 的現行輸出；其他站在 chapters.json 的 site.chrome 裡調）
 const CHROME = {
-  hideEmptyAppendices: false, // true：沒有附錄時，側欄與目錄頁都不輸出「附錄」空區塊
+  hideEmptyAppendices: false, // true：沒有附錄時，側欄與目錄頁都不輸出「附錄」空區塊；'blank'：同上但側欄留一個空行（舊 generator 的習慣）
   catalogGroupClass: null,    // 例 "spaced"：目錄頁第二組以後用 class 而非 inline style
   firstPrevDisabled: true,    // 第一章的「上一章」：true = class="prev disabled"
   manage404: 'auto',          // auto：404.html 的 <head> 沒有 <title> 才接管；true/false 強制
@@ -246,7 +246,7 @@ function buildSidebar(page, html) {
   const switchHtml = sw ? `\n    ${sw}` : '';
   const appendixBlock =
     CHROME.hideEmptyAppendices && !appendices.length
-      ? ''
+      ? CHROME.hideEmptyAppendices === 'blank' ? '\n' : ''
       : `
     <div class="toc-in-chapter">
       <h2>${S.sidebarAppendices}</h2>
@@ -535,7 +535,7 @@ function applyAlternates(html, file) {
 // 手寫頁（資源總覽、三本手冊）與目錄頁的語言切換：章節頁的側欄是 generator 產的，這幾頁不是，
 // 所以用註解夾住單獨插一塊。未發布語系時 langSwitch() 回空字串，zh 產物不動。
 function applyLangSwitch(html, file) {
-  html = html.replace(/\n?\s*<!-- i18n:switch -->[\s\S]*?<!-- \/i18n:switch -->/, '');
+  html = html.replace(/\n?[ \t]*<!-- i18n:switch -->[\s\S]*?<!-- \/i18n:switch -->/, '');
   const sw = i18n.langSwitch({
     isPrimary: IS_PRIMARY,
     locale: LOCALE,
@@ -548,7 +548,8 @@ function applyLangSwitch(html, file) {
   });
   if (!sw) return html;
   if (/<a class="hub-link"/.test(html)) {
-    return html.replace(/([ \t]*)(<a class="hub-link")/, (m, ws, tag) => `${ws}<!-- i18n:switch -->${sw}<!-- /i18n:switch -->\n${ws}${tag}`);
+    // 照原本的斷行習慣插：hub-link 自成一行就各佔一行；跟前面標籤同一行的（三本手冊常見）就緊貼著插，重跑不漂移。
+    return html.replace(/(\n[ \t]*|)(<a class="hub-link")/, (m, lead, tag) => `${lead}<!-- i18n:switch -->${sw}<!-- /i18n:switch -->${lead}${tag}`);
   }
   // 各站 hero 容器寫法不一：<div class="hero">、<header class="hero">、<div class="resource-hero">；第一個命中的就是插入點。
   const heroRe = /(<(?:div|header) class="(?:hero|resource-hero)"[^>]*>)/;
