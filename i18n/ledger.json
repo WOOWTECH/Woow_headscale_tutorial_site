@@ -1491,6 +1491,13 @@
    "targetHash": "1e27aa945cc597e6",
    "registeredAt": "2026-08-31",
    "translatedAt": "2026-08-31"
+  },
+  "en:chapters.json:site.footerMeta": {
+   "status": "complete",
+   "sourceHash": "6c1c187fb913862c",
+   "targetHash": "d8a975fcd31a58df",
+   "registeredAt": "2026-09-01",
+   "translatedAt": "2026-09-01"
   }
  }
 }
