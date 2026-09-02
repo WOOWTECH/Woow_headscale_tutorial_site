@@ -8,6 +8,7 @@
     "repoUrl": "https://github.com/WOOWTECH/Woow_headscale_tutorial_site",
     "locale": "en_US",
     "description": "12-chapter Headscale guide: install, users and preauth keys, joining devices, node management, ACL, routes, DNS, admin settings, security and troubleshooting.",
+    "footerMeta": "Screenshots are from the official Headscale and Tailscale interfaces. Headscale and Tailscale are trademarks of their respective owners; this site is not affiliated with them.",
     "ogImage": "assets/og/headscale-guide.en.png",
     "license": {
       "name": "CC BY 4.0",
