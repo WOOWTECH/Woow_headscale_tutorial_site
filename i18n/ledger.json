@@ -809,7 +809,7 @@
   "en:sales.html#compare": {
    "status": "complete",
    "sourceHash": "d1e55366ac6f59d2",
-   "targetHash": "fe34e0dee47aea4c",
+   "targetHash": "68ef4e7e0384c67a",
    "registeredAt": "2026-08-31",
    "translatedAt": "2026-09-03"
   },
@@ -823,7 +823,7 @@
   "en:sales.html#cta": {
    "status": "complete",
    "sourceHash": "1963285a4beb7e88",
-   "targetHash": "a25cb239c24fb900",
+   "targetHash": "4ec7c5d136ba9167",
    "registeredAt": "2026-08-31",
    "translatedAt": "2026-09-03"
   },
