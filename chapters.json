@@ -9,11 +9,14 @@
     "locale": "zh_TW",
     "description": "12 章繁體中文 Headscale 教學：從安裝、建立使用者與 preauth key、加入裝置，到節點管理、ACL、路由、DNS、管理員設定與安全排錯。",
     "footerMeta": "截圖取自 Headscale 與 Tailscale 官方介面。Headscale 與 Tailscale 為其各自權利人的商標，本站與其無隸屬關係。",
-    "ogImage": "assets/og/headscale-guide.png",
+    "ogImage": "assets/screenshots/ch4/01_preauth_key.png",
     "license": {
       "name": "CC BY 4.0",
       "url": "https://creativecommons.org/licenses/by/4.0/deed.zh-hant",
       "holder": "woowtech"
+    },
+    "chrome": {
+      "manage404": false
     }
   },
   "hub": {
