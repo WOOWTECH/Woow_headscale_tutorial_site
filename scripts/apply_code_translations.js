@@ -56,16 +56,27 @@ for (const f of fs.existsSync(propDir) ? fs.readdirSync(propDir).filter((x) => x
       rejected++;
       continue;
     }
+    const key = (w) => `${w.file}|${w.unit}|${w.zh}`;
+    const entry = { file: prop.file, unit: e.unit, zh: e.zh, [code]: e.en };
+    const idx = wl.allow.findIndex((w) => key(w) === key(entry));
     const n = html.split(e.zh).length - 1;
+    if (n === 0) {
+      // 固定點：提案已套用且同一筆白名單仍精確對應時，重跑不應失敗。
+      // 限定在提案指定的 unit 內計數，避免另一節剛好有相同譯文而誤判。
+      const unit = i18n.extractUnits(html).find((u) => u.key === e.unit);
+      const translated = (unit ? unit.html : '').split(e.en).length - 1;
+      if (translated === 1 && idx >= 0 && wl.allow[idx][code] === e.en) {
+        skipped++;
+        console.log(`· ${prop.file} ${e.unit} 已套用`);
+        continue;
+      }
+    }
     if (n !== 1) {
       console.error(`✗ ${prop.file} ${e.unit}: 原文區塊在 ${code}/ 出現 ${n} 次（需要剛好 1 次），跳過`);
       rejected++;
       continue;
     }
     html = html.replace(e.zh, e.en);
-    const key = (w) => `${w.file}|${w.unit}|${w.zh}`;
-    const entry = { file: prop.file, unit: e.unit, zh: e.zh, [code]: e.en };
-    const idx = wl.allow.findIndex((w) => key(w) === key(entry));
     if (idx >= 0) wl.allow[idx] = { ...wl.allow[idx], ...entry };
     else wl.allow.push(entry);
     applied++;

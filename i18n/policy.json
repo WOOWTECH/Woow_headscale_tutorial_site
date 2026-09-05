@@ -1,10 +1,9 @@
 {
-  "_readme": "Per-unit translation policy for en/. Keys: '<file>' (whole page) or '<file>#<section id>'. Values: translate (default) | localize (adapt Taiwan-specific content for a global reader; must add a 'Note:' callout) | transcreate (rewrite for the audience; sales.html) | rewrite (prompts that assume Chinese output) | skip (excluded; card shows 'Chinese only'). Anything not listed = translate.",
+  "_readme": "Per-unit translation policy for en/. Keys: '<file>' (whole page) or '<file>#<section id>'. Values: translate (default) | localize (adapt Taiwan-specific content for a global reader; must add a 'Note:' callout) | transcreate (rewrite for the audience; sales.html) | rewrite (prompts that assume Chinese output) | skip (excluded; card shows 'Chinese only'). Narrow exemption: a localize unit that only substitutes an example token with a locale-neutral equivalent (for example, a hostname) does not need a Note when its instructions and meaning are unchanged. Anything not listed = translate.",
   "defaults": { "policy": "translate" },
   "units": {
-    "ch1_intro.html#why": { "policy": "localize", "brief": "「這套 WoowTech Headscale」→ describe as the Headscale add-on / this setup; drop Taiwan-only framing." },
     "ch2_install.html#steps": { "policy": "localize", "brief": "Add-on store path via the WoowTech repository URL; keep the URL verbatim." },
-    "ch9_dns.html#steps": { "policy": "localize", "brief": "Chinese hostname examples → living-room / nas style examples." },
+    "ch9_dns.html#steps": { "policy": "localize", "brief": "Chinese hostname examples → living-room / nas style examples; this is the narrow example-token exemption and does not require a Note." },
     "sales.html": { "policy": "transcreate", "brief": "Overseas version: no TWD, no Taiwan-only IP policy, real contact channel; Option A (self-hosted) / Option B (managed by WoowTech). Awaiting business brief from Elmo." },
     "prompts.html": { "policy": "rewrite", "brief": "Prompts must instruct the AI to answer in English; keep CLI/API strings verbatim; fix the stated count (23 prompts)." },
     "skills.html": { "policy": "translate", "brief": "Full translation per 2026-08-31 decision; any prompt demanding Traditional Chinese output becomes English-only." }

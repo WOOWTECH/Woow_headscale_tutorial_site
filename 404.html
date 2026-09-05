@@ -1,103 +1,41 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>404 · Headscale 自架 VPN 控制層指南</title>
-  <meta name="robots" content="noindex, follow" />
-  <meta name="theme-color" content="#6183FC" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Yellowtail&display=swap" />
-  <link rel="stylesheet" href="https://headscale-guide.woowtech.io/assets/css/style.css" />
-  <link rel="stylesheet" href="https://headscale-guide.woowtech.io/assets/css/i18n.css" />
 </head>
 <body>
   <main class="home">
-    <div class="i18n-block" data-lang="zh-Hant">
-      <div class="hero">
-        <span class="kicker-script">page not found</span>
-        <div class="kicker">404</div>
-        <h1>找不到這一頁</h1>
-        <p>網址可能打錯了，或這一章已經改名。回目錄挑一章開始看吧。 · <a href="#" data-switch="en" hreflang="en" lang="en">English</a></p>
-      </div>
-
-      <section class="chapter-index">
-        <h2 class="index-title">你可能要找</h2>
-        <div class="chapter-grid">
-          <a class="chapter-card" href="/index.html">
-            <span class="num">↖</span>
-            <h3>回首頁</h3>
-            <p>Headscale 自架 VPN 控制層指南的起點。</p>
-          </a>
-          <a class="chapter-card" href="/ch1_intro.html">
-            <span class="num">01</span>
-            <h3>從第 1 章開始</h3>
-            <p>Headscale 是什麼，先認識再上手。</p>
-          </a>
-          <a class="chapter-card" href="/ch5_join_device.html">
-            <span class="num">05</span>
-            <h3>加入第一個裝置</h3>
-            <p>讓 tailscale client 連到自架控制層。</p>
-          </a>
-          <a class="chapter-card" href="/ch12_troubleshooting.html">
-            <span class="num">12</span>
-            <h3>排錯與維護</h3>
-            <p>連不上、節點離線、更新與備份都在這。</p>
-          </a>
-        </div>
-      </section>
+    <div class="hero">
+      <span class="kicker-script">page not found</span>
+      <div class="kicker">404</div>
+      <h1>找不到這一頁</h1>
+      <p>網址可能打錯了，或這一章已經改名。回目錄挑一章開始看吧。</p>
     </div>
 
-    <div class="i18n-block" data-lang="en" hidden>
-      <div class="hero">
-        <span class="kicker-script">page not found</span>
-        <div class="kicker">404</div>
-        <h1>Page not found</h1>
-        <p>The address may be mistyped, or this chapter was renamed. Pick a chapter from the contents to continue. · <a href="#" data-switch="zh-Hant" hreflang="zh-Hant" lang="zh-Hant">中文</a></p>
+    <section class="chapter-index">
+      <h2 class="index-title">你可能要找</h2>
+      <div class="chapter-grid">
+        <a class="chapter-card" href="index.html">
+          <span class="num">↖</span>
+          <h3>回首頁</h3>
+          <p>Headscale 自架 VPN 控制層指南的起點。</p>
+        </a>
+        <a class="chapter-card" href="ch1_intro.html">
+          <span class="num">01</span>
+          <h3>從第 1 章開始</h3>
+          <p>Headscale 是什麼，先認識再上手。</p>
+        </a>
+        <a class="chapter-card" href="ch5_join_device.html">
+          <span class="num">05</span>
+          <h3>加入第一個裝置</h3>
+          <p>讓 tailscale client 連到自架控制層。</p>
+        </a>
+        <a class="chapter-card" href="ch12_troubleshooting.html">
+          <span class="num">12</span>
+          <h3>排錯與維護</h3>
+          <p>連不上、節點離線、更新與備份都在這。</p>
+        </a>
       </div>
-
-      <section class="chapter-index">
-        <h2 class="index-title">You might be looking for</h2>
-        <div class="chapter-grid">
-          <a class="chapter-card" href="/en/index.html">
-            <span class="num">↖</span>
-            <h3>Back to the Resource Hub</h3>
-            <p>Where the Headscale guide starts.</p>
-          </a>
-          <a class="chapter-card" href="/en/ch1_intro.html">
-            <span class="num">01</span>
-            <h3>Start with Chapter 1</h3>
-            <p>What Headscale is, before you touch anything.</p>
-          </a>
-          <a class="chapter-card" href="/en/ch5_join_device.html">
-            <span class="num">05</span>
-            <h3>Join your first device</h3>
-            <p>Point a tailscale client at your own control server.</p>
-          </a>
-          <a class="chapter-card" href="/en/ch12_troubleshooting.html">
-            <span class="num">12</span>
-            <h3>Troubleshooting and maintenance</h3>
-            <p>Can’t connect, node offline, updates and backups.</p>
-          </a>
-        </div>
-      </section>
-    </div>
+    </section>
   </main>
-  <script>
-    // 同一份 404 服務兩個語系：依路徑（/en/…）或讀者點選顯示對應區塊；不做自動跳轉。
-    (function () {
-      var blocks = document.querySelectorAll('.i18n-block');
-      function show(lang) {
-        blocks.forEach(function (b) { b.hidden = b.getAttribute('data-lang') !== lang; });
-        document.documentElement.lang = lang;
-      }
-      var wantEn = /^\/en(\/|$)/.test(location.pathname);
-      show(wantEn ? 'en' : 'zh-Hant');
-      document.querySelectorAll('[data-switch]').forEach(function (a) {
-        a.addEventListener('click', function (e) { e.preventDefault(); show(a.getAttribute('data-switch')); });
-      });
-    })();
-  </script>
 </body>
 </html>
