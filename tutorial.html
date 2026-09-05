@@ -7,6 +7,10 @@
   <meta name="description" content="12 章繁體中文 Headscale 教學：從安裝、建立使用者與 preauth key、加入裝置，到節點管理、ACL、路由、DNS、管理員設定與安全排錯。" />
   <meta name="author" content="woowtech" />
   <link rel="canonical" href="https://headscale-guide.woowtech.io/tutorial.html" />
+  <link rel="alternate" hreflang="zh-Hant" href="https://headscale-guide.woowtech.io/tutorial.html" />
+  <link rel="alternate" hreflang="zh" href="https://headscale-guide.woowtech.io/tutorial.html" />
+  <link rel="alternate" hreflang="en" href="https://headscale-guide.woowtech.io/en/tutorial.html" />
+  <link rel="alternate" hreflang="x-default" href="https://headscale-guide.woowtech.io/en/tutorial.html" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Headscale 自架 VPN 控制層指南" />
@@ -26,10 +30,14 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Yellowtail&display=swap" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/i18n.css" />
 </head>
 <body>
   <main class="home">
     <div class="hero">
+      <!-- i18n:switch -->
+      <nav class="lang-switch" aria-label="語言"><a class="active" href="tutorial.html" lang="zh-Hant" aria-current="page">中文</a><a href="en/tutorial.html" lang="en" hreflang="en">EN</a></nav>
+      <!-- /i18n:switch -->
       <span class="kicker-script">your network, your home</span>
       <div class="kicker">Headscale 自架 VPN 控制層指南</div>
       <h1>自架的 Tailscale 控制伺服器</h1>
